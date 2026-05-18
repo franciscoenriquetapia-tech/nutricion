@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>NutriTracker Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   DESIGN SYSTEM — Primary #0EA5A0 · Secondary #17C3BD
+   Tertiary #7C3AED · Neutral #0F172A · bg lavanda
+══════════════════════════════════════════ */
+:root {
+  /* ── Backgrounds (lavanda suave como en la imagen) */
+  --bg:      #eef0f8;   /* lavanda muy suave */
+  --surface: #ffffff;
+  --panel:   #ffffff;
+  --layer:   #f0f2fa;   /* lavanda claro para inputs/hover */
+  --layer2:  #e2e5f2;   /* lavanda medio para tracks */
+
+  /* ── Borders */
+  --border:        rgba(15,23,42,.07);
+  --border-mid:    rgba(15,23,42,.12);
+  --border-strong: rgba(15,23,42,.20);
+
+  /* ── Primary — Teal #0EA5A0 */
+  --accent:       #0ea5a0;
+  --accent-light: #17c3bd;
+  --accent-dim:   rgba(14,165,160,.11);
+  --accent-glow:  rgba(14,165,160,.24);
+
+  /* ── Tertiary — Purple #7C3AED */
+  --purple:     #7c3aed;
+  --purple-dim: rgba(124,58,237,.10);
+  --purple-mid: rgba(124,58,237,.18);
+
+  /* ── Semantic */
+  --green:      #16a34a;
+  --green-dim:  rgba(22,163,74,.10);
+  --red:        #dc2626;
+  --red-dim:    rgba(220,38,38,.10);
+  --amber:      #d97706;
+  --amber-dim:  rgba(217,119,6,.10);
+  --blue:       #2563eb;
+  --blue-dim:   rgba(37,99,235,.10);
+  --rose:       #e11d48;
+  --rose-dim:   rgba(225,29,72,.10);
+
+  /* ── Text — Neutral #0F172A */
+  --text-1: #0f172a;
+  --text-2: #475569;
+  --text-3: #94a3b8;
+
+  /* ── Radius (más redondeado, como en la imagen) */
+  --r:    16px;
+  --r-sm: 10px;
+  --r-xs: 6px;
+
+  /* ── Fonts */
+  --font: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+
+  /* ── Layout */
+  --nav-h:  64px;
+  --top-h:  62px;
+  --side-w: 236px;
+}
+
+/* ══ RESET ══ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
+html { scroll-behavior:smooth }
+body { font-family:var(--font); background:var(--bg); color:var(--text-1); min-height:100vh; font-size:14px; line-height:1.5 }
+button { font-family:inherit; cursor:pointer }
+input, select { font-family:inherit }
+
+/* ══════════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  height: var(--top-h);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(15,23,42,.04);
+}
+.topbar-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 17px; color: var(--text-1); letter-spacing: -.4px;
+}
+.logo-mark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+.topbar-right { display: flex; align-items: center; gap: 10px }
+.top-countdown {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--accent-dim); border: 1px solid var(--accent-glow);
+  border-radius: 100px; padding: 5px 14px;
+  font-size: 12px; font-weight: 500; color: var(--accent);
+}
+.top-countdown strong { font-size: 15px; font-weight: 700 }
+.top-phase {
+  background: var(--purple-dim); border: 1px solid var(--purple-mid);
+  border-radius: 100px; padding: 5px 13px;
+  font-size: 11px; font-weight: 600; color: var(--purple);
+  letter-spacing: .3px;
+}
+
+/* ══════════════════════════════════════════
+   DESKTOP LAYOUT  (≥ 768px)
+   Sidebar + content area, top nav tabs
+══════════════════════════════════════════ */
+.app-shell {
+  display: flex;
+  min-height: calc(100vh - var(--top-h));
+}
+
+/* ── DESKTOP SIDEBAR ── */
+.sidebar {
+  width: var(--side-w); flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 20px 10px;
+  position: sticky; top: var(--top-h);
+  height: calc(100vh - var(--top-h));
+  overflow-y: auto; display: flex; flex-direction: column; gap: 2px;
+}
+.sidebar::-webkit-scrollbar { width: 3px }
+.sidebar::-webkit-scrollbar-thumb { background: var(--layer2); border-radius: 3px }
+.sidebar-section-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-3); padding: 12px 12px 5px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: var(--r-sm);
+  font-size: 13px; font-weight: 500; color: var(--text-2);
+  border: none; background: transparent;
+  cursor: pointer; transition: all .15s; text-align: left; width: 100%;
+}
+.sidebar-item .s-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0 }
+.sidebar-item:hover { background: var(--layer); color: var(--text-1) }
+.sidebar-item.active {
+  background: var(--accent-dim); color: var(--accent); font-weight: 600;
+  border-left: 3px solid var(--accent); padding-left: 9px;
+}
+
+/* ── CONTENT AREA ── */
+.content-area {
+  flex: 1; min-width: 0;
+  padding: 28px 28px 60px;
+  max-width: 860px;
+}
+
+/* ══════════════════════════════════════════
+   MOBILE LAYOUT  (< 768px)
+   No sidebar, full-width, bottom nav
+══════════════════════════════════════════ */
+@media (max-width: 767px) {
+  html, body { height: 100%; overflow: hidden }
+
+  .sidebar { display: none !important }
+
+  .app-shell {
+    min-height: 0; flex-direction: column; flex: 1;
+    height: calc(100vh - var(--top-h)); overflow: hidden;
+  }
+
+  .content-area {
+    flex: 1; overflow-y: auto; overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 18px 14px calc(var(--nav-h) + 14px);
+    max-width: 100%;
+  }
+  .content-area::-webkit-scrollbar { display: none }
+
+  .bottom-nav { display: flex !important }
+  .topbar { position: sticky }
+}
+
+/* ── BOTTOM NAV (mobile only) ── */
+.bottom-nav {
+  display: none;
+  height: var(--nav-h);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow-x: auto; scrollbar-width: none;
+  box-shadow: 0 -1px 0 var(--border), 0 -4px 16px rgba(15,23,42,.06);
+}
+.bottom-nav::-webkit-scrollbar { display: none }
+.bn-item {
+  flex-shrink: 0; min-width: 60px; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; border: none; background: transparent;
+  cursor: pointer; padding: 0 6px; transition: all .18s; position: relative;
+}
+.bn-icon { font-size: 19px; line-height: 1; opacity: .35; transition: all .2s }
+.bn-label { font-size: 9px; font-weight: 600; letter-spacing: .3px; color: var(--text-3); transition: color .2s }
+.bn-item.active .bn-icon { opacity: 1 }
+.bn-item.active .bn-label { color: var(--accent) }
+.bn-item.active::before {
+  content: ''; position: absolute; top: 0; left: 22%; right: 22%;
+  height: 2.5px; background: var(--accent); border-radius: 0 0 4px 4px;
+  box-shadow: 0 1px 6px var(--accent-glow);
+}
+
+/* ══════════════════════════════════════════
+   SECTIONS
+══════════════════════════════════════════ */
+.section { display: none }
+.section.active { display: block; animation: fadeUp .22s ease }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
+
+/* ══════════════════════════════════════════
+   PAGE HEADER
+══════════════════════════════════════════ */
+.page-header { margin-bottom: 22px }
+.page-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px }
+.page-title { font-size: 26px; font-weight: 700; letter-spacing: -.5px; color: var(--text-1) }
+.page-sub { font-size: 13px; color: var(--text-2); margin-top: 4px }
+
+/* ══════════════════════════════════════════
+   CARDS
+══════════════════════════════════════════ */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px; margin-bottom: 14px;
+  box-shadow: 0 1px 4px rgba(15,23,42,.05), 0 0 0 1px rgba(15,23,42,.02);
+}
+.card-sm { padding: 14px 16px }
+.card-title { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 14px; display: flex; align-items: center; gap: 7px }
+.card-title-icon { font-size: 15px }
+
+/* ══════════════════════════════════════════
+   STAT GRID
+══════════════════════════════════════════ */
+.stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 14px }
+@media (max-width: 640px) { .stat-grid { grid-template-columns: repeat(2,1fr) } }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px 18px;
+  transition: border-color .2s, transform .18s, box-shadow .18s;
+  box-shadow: 0 1px 4px rgba(15,23,42,.05);
+}
+.stat-card:hover { border-color: var(--accent-glow); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(14,165,160,.12) }
+.stat-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 100px; margin-bottom: 10px;
+}
+.b-teal   { background: var(--accent-dim);  color: var(--accent) }
+.b-green  { background: var(--green-dim);   color: var(--green) }
+.b-amber  { background: var(--amber-dim);   color: var(--amber) }
+.b-blue   { background: var(--blue-dim);    color: var(--blue) }
+.b-red    { background: var(--red-dim);     color: var(--red) }
+.b-purple { background: var(--purple-dim);  color: var(--purple) }
+.stat-label { font-size: 11px; color: var(--text-3); font-weight: 500; margin-bottom: 5px }
+.stat-val   { font-size: 28px; font-weight: 700; letter-spacing: -1px; line-height: 1; color: var(--text-1) }
+.stat-val.teal  { color: var(--accent) }
+.stat-val.green { color: var(--green) }
+.stat-unit { font-size: 13px; color: var(--text-3); font-weight: 400 }
+
+/* Ring */
+.ring-wrap { display: flex; align-items: center; gap: 12px; margin-top: 2px }
+.ring-svg  { transform: rotate(-90deg) }
+.ring-track { fill: none; stroke: var(--layer2); stroke-width: 5 }
+.ring-fill  {
+  fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 138; stroke-dashoffset: 138;
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+  transition: stroke-dashoffset 1.2s cubic-bezier(.34,1.56,.64,1);
+}
+.ring-pct { font-size: 24px; font-weight: 700; letter-spacing: -1px; color: var(--accent) }
+
+/* ══════════════════════════════════════════
+   RITMO BAR
+══════════════════════════════════════════ */
+.ritmo-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 12px }
+@media (max-width: 480px) { .ritmo-stats { grid-template-columns: repeat(2,1fr) } }
+.rs { background: var(--layer); border-radius: var(--r-sm); padding: 10px 10px 8px }
+.rs-label { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px }
+.rs-val   { font-size: 17px; font-weight: 700; letter-spacing: -.5px }
+.track-outer { background: var(--layer2); border-radius: 100px; height: 6px; overflow: hidden; margin-bottom: 7px }
+.track-inner { height: 100%; border-radius: 100px; transition: width .8s cubic-bezier(.34,1.56,.64,1) }
+.track-teal   { background: var(--accent) }
+.track-amber  { background: var(--amber) }
+.track-red    { background: var(--red) }
+.track-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); font-weight: 500 }
+
+/* ══════════════════════════════════════════
+   PAUTA ALERT
+══════════════════════════════════════════ */
+.pauta-alert { border-radius: var(--r); border: 1px solid; overflow: hidden; margin-bottom: 14px; animation: fadeUp .35s ease; box-shadow: 0 2px 8px rgba(0,0,0,.06) }
+.pauta-hdr { padding: 14px 18px; display: flex; align-items: center; gap: 11px; border-bottom: 1px solid }
+.pauta-icon { font-size: 20px }
+.pauta-ttl  { font-size: 14px; font-weight: 700 }
+.pauta-sub  { font-size: 11px; opacity: .7; margin-top: 1px }
+.pauta-body { padding: 16px 18px }
+.pauta-macros { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; margin-bottom: 12px }
+.pm { background: var(--layer); border-radius: var(--r-sm); padding: 8px; text-align: center }
+.pm-label { font-size: 9px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 2px }
+.pm-val   { font-size: 16px; font-weight: 700 }
+.pauta-changes { display: flex; flex-direction: column; gap: 4px }
+.pc { display: flex; gap: 8px; font-size: 12px; color: var(--text-2); padding: 7px 11px; background: var(--layer); border-radius: var(--r-xs); line-height: 1.45 }
+.pc-arr { flex-shrink: 0; color: var(--text-3); font-size: 11px }
+.pauta-btns { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap }
+.p-act-btn  { padding: 9px 18px; border: none; border-radius: var(--r-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s }
+.p-skip-btn { padding: 9px 14px; background: transparent; border: 1px solid var(--border-mid); border-radius: var(--r-sm); color: var(--text-2); font-size: 12px; cursor: pointer }
+.pauta-teal   { border-color: var(--accent-glow) }
+.pauta-teal .pauta-hdr   { background: var(--accent-dim); border-color: rgba(14,165,160,.15) }
+.pauta-teal .pauta-ttl   { color: var(--accent) }
+.pauta-teal .pm-val      { color: var(--accent) }
+.pauta-teal .p-act-btn   { background: var(--accent); color: #fff }
+.pauta-amber  { border-color: rgba(217,119,6,.25) }
+.pauta-amber .pauta-hdr  { background: var(--amber-dim); border-color: rgba(217,119,6,.2) }
+.pauta-amber .pauta-ttl  { color: var(--amber) }
+.pauta-amber .pm-val     { color: var(--amber) }
+.pauta-amber .p-act-btn  { background: var(--amber); color: #fff }
+
+/* ══════════════════════════════════════════
+   MACROS ROW
+══════════════════════════════════════════ */
+.macros-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 14px }
+.mp { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 12px; text-align: center; box-shadow: 0 1px 2px rgba(0,0,0,.03) }
+.mp-label { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 3px }
+.mp-val   { font-size: 18px; font-weight: 700; letter-spacing: -.5px }
+.mp-unit  { font-size: 10px; color: var(--text-3) }
+
+/* ══════════════════════════════════════════
+   CHART CARD
+══════════════════════════════════════════ */
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 18px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(15,23,42,.05) }
+.chart-hdr  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px }
+.chart-ttl  { font-size: 13px; font-weight: 600; color: var(--text-1) }
+.chart-legend { display: flex; gap: 12px }
+.leg-item  { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2) }
+.leg-dot   { width: 7px; height: 7px; border-radius: 50% }
+
+/* ══════════════════════════════════════════
+   WATER
+══════════════════════════════════════════ */
+.water-track { background: var(--layer2); border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 12px }
+.water-fill  { height: 100%; background: linear-gradient(90deg, var(--blue), #60a5fa); border-radius: 100px; width: 0%; transition: width .6s cubic-bezier(.34,1.56,.64,1) }
+.water-btns  { display: flex; gap: 7px }
+.water-btn   { flex: 1; padding: 9px; background: var(--blue-dim); border: 1px solid rgba(37,99,235,.2); border-radius: var(--r-sm); color: var(--blue); font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center }
+.water-btn:hover { background: rgba(37,99,235,.15) }
+.water-reset { padding: 9px 13px; background: var(--layer); border: 1px solid var(--border-mid); border-radius: var(--r-sm); color: var(--text-3); font-size: 11px; cursor: pointer }
+
+/* ══════════════════════════════════════════
+   ADHERENCIA
+══════════════════════════════════════════ */
+.adh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px }
+.adh-btns { display: flex; gap: 6px }
+.adh-btn  { flex: 1; padding: 8px 5px; border-radius: var(--r-sm); font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: transparent; color: var(--text-2); cursor: pointer; transition: all .15s; text-align: center }
+.adh-btn.sel-100 { background: var(--green-dim);  border-color: rgba(22,163,74,.35); color: var(--green) }
+.adh-btn.sel-80  { background: var(--accent-dim); border-color: var(--accent-glow);  color: var(--accent) }
+.adh-btn.sel-low { background: var(--red-dim);    border-color: rgba(220,38,38,.3);  color: var(--red) }
+.panic-center { display: flex; flex-direction: column; align-items: center; gap: 6px }
+.panic-big { width: 52px; height: 52px; border-radius: 50%; background: var(--red-dim); border: 2px solid rgba(220,38,38,.35); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .18s }
+.panic-big:hover, .panic-big:active { background: rgba(220,38,38,.18); transform: scale(1.08) }
+.panic-num  { font-size: 24px; font-weight: 700; color: var(--red) }
+.panic-lbl  { font-size: 10px; font-weight: 600; letter-spacing: .3px; color: var(--text-3); text-transform: uppercase }
+
+/* HEATMAP */
+.heatmap-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-top: 10px }
+.hm-day-label { font-size: 9px; font-weight: 600; color: var(--text-3); display: flex; align-items: center; justify-content: center; letter-spacing: .3px }
+.hm-cell { aspect-ratio: 1; border-radius: 3px }
+.hm-0 { background: var(--layer2) }
+.hm-1 { background: rgba(220,38,38,.18) }
+.hm-2 { background: rgba(220,38,38,.38) }
+.hm-3 { background: rgba(220,38,38,.62) }
+.hm-4 { background: var(--red) }
+.hm-legend { display: flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 10px; color: var(--text-3) }
+.hm-leg-cell { width: 9px; height: 9px; border-radius: 2px }
+
+/* ══════════════════════════════════════════
+   DAY STRIP (Rutina)
+══════════════════════════════════════════ */
+.day-strip { display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 16px }
+.day-strip::-webkit-scrollbar { display: none }
+.day-btn   {
+  flex-shrink: 0; width: 54px; height: 62px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border: 1.5px solid var(--border); border-radius: var(--r-sm);
+  background: var(--surface); cursor: pointer; transition: all .18s;
+  box-shadow: 0 1px 3px rgba(15,23,42,.04);
+}
+.day-btn .d-abbr { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3) }
+.day-btn .d-name { font-size: 14px; font-weight: 700; color: var(--text-2) }
+.day-btn.active {
+  border-color: var(--accent); background: var(--accent-dim);
+  box-shadow: 0 0 0 3px var(--accent-dim), 0 2px 8px var(--accent-glow);
+}
+.day-btn:hover { border-color: var(--accent); background: var(--accent-dim) }
+.day-btn.active .d-name, .day-btn:hover .d-name { color: var(--accent) }
+.day-btn.active .d-abbr, .day-btn:hover .d-abbr { color: var(--accent); opacity: .7 }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 18px }
+.timeline::before { content: ''; position: absolute; left: 5px; top: 14px; bottom: 14px; width: 1px; background: linear-gradient(180deg, transparent, var(--border-mid) 10%, var(--border-mid) 90%, transparent) }
+.tl-item    { position: relative; margin-bottom: 12px; animation: fadeUp .28s ease both }
+.tl-item:nth-child(1){animation-delay:.02s}.tl-item:nth-child(2){animation-delay:.04s}.tl-item:nth-child(3){animation-delay:.06s}
+.tl-item:nth-child(4){animation-delay:.08s}.tl-item:nth-child(5){animation-delay:.10s}.tl-item:nth-child(6){animation-delay:.12s}
+.tl-item:nth-child(7){animation-delay:.14s}.tl-item:nth-child(8){animation-delay:.16s}
+.tl-dot     { position: absolute; left: -22px; top: 11px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--bg); box-shadow: 0 0 0 1px var(--border-mid) }
+.tl-dot-default { background: var(--text-3) }
+.tl-dot-sport   { background: var(--amber);  box-shadow: 0 0 0 1px var(--amber) }
+.tl-dot-work    { background: var(--purple); box-shadow: 0 0 0 1px var(--purple) }
+.tl-dot-food    { background: var(--accent); box-shadow: 0 0 0 1px var(--accent) }
+.tl-dot-sleep   { background: var(--blue);   box-shadow: 0 0 0 1px var(--blue) }
+.tl-dot-pet     { background: var(--green);  box-shadow: 0 0 0 1px var(--green) }
+.tl-content { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 10px 14px; transition: border-color .15s; box-shadow: 0 1px 2px rgba(0,0,0,.04) }
+.tl-content:hover { border-color: var(--border-mid) }
+.tl-time   { font-family: var(--mono); font-size: 10px; color: var(--text-3); margin-bottom: 2px }
+.tl-action { font-size: 13px; font-weight: 600; margin-bottom: 2px }
+.tl-desc   { font-size: 11px; color: var(--text-2); line-height: 1.5 }
+.type-sport  { color: var(--amber) }
+.type-work   { color: var(--purple) }
+.type-food   { color: var(--accent) }
+.type-sleep  { color: var(--blue) }
+.type-default { color: var(--text-1) }
+
+/* ══════════════════════════════════════════
+   MINUTA
+══════════════════════════════════════════ */
+.kcal-banner { background: linear-gradient(135deg, var(--accent-dim), rgba(23,195,189,.06)); border: 1.5px solid var(--accent-glow); border-radius: var(--r); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(14,165,160,.08) }
+.kb-main  { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--accent); line-height: 1 }
+.kb-label { font-size: 11px; color: var(--text-2); margin-top: 3px }
+.kb-right { text-align: right; font-size: 11px; color: var(--text-3); line-height: 1.7 }
+.meals-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px }
+@media (max-width: 420px) { .meals-grid { grid-template-columns: 1fr } }
+.meal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; transition: transform .18s, border-color .15s; box-shadow: 0 1px 3px rgba(0,0,0,.04) }
+.meal-card:hover { transform: translateY(-2px); border-color: var(--border-mid) }
+.meal-tag  { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; display: inline-block; margin-bottom: 8px }
+.meal-ttl  { font-size: 14px; font-weight: 600; margin-bottom: 10px }
+.meal-items { list-style: none; display: flex; flex-direction: column; gap: 6px }
+.mi        { display: flex; gap: 7px; font-size: 12px; color: var(--text-2); line-height: 1.4 }
+.mi::before { content: '—'; color: var(--text-3); flex-shrink: 0; font-family: var(--mono); font-size: 10px }
+.mi strong { color: var(--text-1); font-weight: 600 }
+.anxiety-box { border: 1px dashed var(--border-mid); border-radius: var(--r); padding: 16px; margin-top: 12px }
+.anxiety-ttl { font-size: 13px; font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 7px }
+.anxiety-sub { font-size: 11px; color: var(--text-3); margin-bottom: 10px }
+.chips     { display: flex; flex-wrap: wrap; gap: 6px }
+.chip      { background: var(--layer); border: 1px solid var(--border-mid); border-radius: var(--r-sm); padding: 5px 10px; font-size: 11px; color: var(--text-2) }
+.chip:hover { border-color: var(--accent); color: var(--accent) }
+
+/* ══════════════════════════════════════════
+   BUTTONS — Primary / Secondary / Outlined
+   (matching the design system image)
+══════════════════════════════════════════ */
+.btn-primary {
+  width: 100%; padding: 13px 20px;
+  background: var(--accent); border: none;
+  border-radius: var(--r-sm); color: #fff;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  box-shadow: 0 2px 8px var(--accent-glow);
+  letter-spacing: .1px;
+}
+.btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 4px 14px var(--accent-glow) }
+.btn-primary:active { transform: translateY(0); box-shadow: 0 1px 4px var(--accent-glow) }
+
+.btn-secondary {
+  width: 100%; padding: 11px 20px;
+  background: transparent; border: 1.5px solid var(--accent);
+  border-radius: var(--r-sm); color: var(--accent);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .15s; margin-bottom: 10px;
+  letter-spacing: .1px;
+}
+.btn-secondary:hover { background: var(--accent-dim); border-color: var(--accent) }
+
+.btn-inverted {
+  width: 100%; padding: 13px 20px;
+  background: var(--text-1); border: none;
+  border-radius: var(--r-sm); color: #fff;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all .15s;
+}
+.btn-inverted:hover { background: #1e293b }
+
+/* ══════════════════════════════════════════
+   CONTROL / INPUTS
+══════════════════════════════════════════ */
+.input-row { display: flex; gap: 9px; margin-bottom: 8px }
+.w-input   {
+  flex: 1; background: var(--layer); border: 1.5px solid var(--border-mid);
+  border-radius: var(--r-sm); padding: 12px 14px; color: var(--text-1);
+  font-size: 16px; font-family: var(--mono); outline: none; transition: all .2s;
+}
+.w-input:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-dim) }
+.w-input::placeholder { color: var(--text-3) }
+.feedback  { display: none; border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 12px; animation: fadeUp .3s ease }
+.fb-ttl    { font-size: 12px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; margin-bottom: 3px }
+.fb-txt    { font-size: 12px; line-height: 1.6 }
+.history-table {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); overflow: hidden;
+  box-shadow: 0 1px 4px rgba(15,23,42,.05);
+}
+.history-table table { width: 100%; border-collapse: collapse }
+.history-table thead { background: var(--layer); border-bottom: 1px solid var(--border-mid) }
+.history-table th    { padding: 10px 14px; font-size: 10px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); text-align: left }
+.history-table td    { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--border) }
+.history-table tr:last-child td { border-bottom: none }
+.history-table tbody tr:hover   { background: var(--layer) }
+.h-date   { font-family: var(--mono); font-size: 11px; color: var(--text-2) }
+.h-weight { font-size: 15px; font-weight: 700 }
+
+/* ══════════════════════════════════════════
+   CUERPO
+══════════════════════════════════════════ */
+.medidas-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; margin-bottom: 12px }
+.medida-wrap  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 13px }
+.medida-label { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; display: block }
+.medida-inp   { width: 100%; background: var(--layer); border: 1.5px solid var(--border-mid); border-radius: var(--r-sm); padding: 9px 11px; color: var(--text-1); font-family: var(--mono); font-size: 14px; outline: none; transition: all .2s }
+.medida-inp:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-dim) }
+.perim-history { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-top: 12px }
+.perim-row  { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px }
+.perim-row:last-child { border-bottom: none }
+.perim-row:hover  { background: var(--layer) }
+.perim-hdr span   { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3) }
+.perim-hdr { background: var(--layer); border-bottom: 1px solid var(--border-mid) }
+.foto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 }
+@media (min-width:768px) { .foto-grid { grid-template-columns: repeat(4,1fr) } }
+.foto-slot { background: var(--layer); border: 2px dashed var(--border-mid); border-radius: var(--r); min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: border-color .2s }
+.foto-slot:hover { border-color: var(--accent) }
+.foto-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0 }
+.foto-slot-lbl { font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--text-3); margin-top: 6px; z-index: 1; text-align: center; padding: 0 6px }
+.foto-icon { font-size: 22px; z-index: 1 }
+.foto-ov { position: absolute; inset: 0; background: rgba(15,23,42,.6); display: flex; align-items: flex-end; padding: 8px; opacity: 0; transition: opacity .2s; z-index: 2 }
+.foto-slot:hover .foto-ov { opacity: 1 }
+.foto-inp { display: none }
+.compare-view  { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden; margin-bottom: 12px }
+.compare-inner { display: grid; grid-template-columns: 1fr 1fr; min-height: 200px }
+.compare-side  { position: relative; overflow: hidden; background: var(--layer); display: flex; align-items: center; justify-content: center }
+.compare-side img { width: 100%; height: 100%; object-fit: cover }
+.compare-tag   { position: absolute; top: 8px; left: 8px; background: rgba(15,23,42,.8); border-radius: 100px; padding: 3px 9px; font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: #fff }
+
+/* ══════════════════════════════════════════
+   SUEÑO
+══════════════════════════════════════════ */
+.sleep-form { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 12px }
+.sleep-grp  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 13px }
+.sleep-lbl  { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 7px; display: block }
+.sleep-inp  { width: 100%; background: var(--layer); border: 1.5px solid var(--border-mid); border-radius: var(--r-sm); padding: 9px 11px; color: var(--text-1); font-family: var(--mono); font-size: 14px; outline: none; transition: all .2s }
+.sleep-inp:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-dim) }
+.quality-btns { display: flex; gap: 7px }
+.q-btn { flex: 1; padding: 9px 6px; border-radius: var(--r-sm); font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: transparent; color: var(--text-2); cursor: pointer; text-align: center; transition: all .15s }
+.q-btn.sel-bad   { background: var(--red-dim);    border-color: rgba(220,38,38,.3);   color: var(--red) }
+.q-btn.sel-ok    { background: var(--amber-dim);  border-color: rgba(217,119,6,.3);   color: var(--amber) }
+.q-btn.sel-great { background: var(--green-dim);  border-color: rgba(22,163,74,.3);   color: var(--green) }
+.sleep-history { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); overflow: hidden }
+.sleep-row     { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border) }
+.sleep-row:last-child { border-bottom: none }
+.sleep-row:hover { background: var(--layer) }
+.sleep-date-txt  { font-family: var(--mono); font-size: 11px; color: var(--text-3) }
+.sleep-hrs-txt   { font-size: 17px; font-weight: 700 }
+.sleep-q-badge   { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 100px }
+.sq-bad   { background: var(--red-dim);   color: var(--red) }
+.sq-ok    { background: var(--amber-dim); color: var(--amber) }
+.sq-great { background: var(--green-dim); color: var(--green) }
+
+/* ══════════════════════════════════════════
+   COMPRAS
+══════════════════════════════════════════ */
+.shop-phase-strip { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap }
+.shop-phase-btn   { padding: 7px 15px; background: var(--layer); border: 1px solid var(--border-mid); border-radius: 100px; font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer; transition: all .15s }
+.shop-phase-btn.active { background: var(--accent-dim); border-color: var(--accent-glow); color: var(--accent) }
+.shop-actions  { display: flex; gap: 7px; margin-bottom: 12px }
+.shop-act-btn  { flex: 1; padding: 9px; background: var(--layer); border: 1px solid var(--border-mid); border-radius: var(--r-sm); color: var(--text-2); font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; text-align: center }
+.shop-act-btn:hover { border-color: var(--accent); color: var(--accent) }
+.shop-category { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(15,23,42,.05) }
+.shop-cat-hdr  { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--layer) }
+.shop-cat-ttl  { font-size: 12px; font-weight: 700 }
+.shop-cat-cnt  { font-size: 11px; color: var(--text-3) }
+.shop-item     { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background .12s }
+.shop-item:last-child { border-bottom: none }
+.shop-item:hover { background: var(--layer) }
+.shop-cb { width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border-strong); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s }
+.shop-item.checked .shop-cb { background: var(--accent); border-color: var(--accent) }
+.shop-item.checked .shop-item-name { text-decoration: line-through; color: var(--text-3) }
+.shop-item-name { font-size: 13px; color: var(--text-1) }
+.shop-item-note { font-family: var(--mono); font-size: 10px; color: var(--text-3); margin-left: auto; flex-shrink: 0 }
+
+/* ══════════════════════════════════════════
+   ALERTAS
+══════════════════════════════════════════ */
+.notif-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px }
+@media (max-width: 420px) { .notif-grid { grid-template-columns: 1fr } }
+.notif-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.04) }
+.notif-hdr  { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px }
+.notif-ttl  { font-size: 13px; font-weight: 600 }
+.toggle     { width: 40px; height: 22px; border-radius: 100px; background: var(--layer2); border: 1.5px solid var(--border-mid); cursor: pointer; position: relative; transition: all .2s; flex-shrink: 0 }
+.toggle.on  { background: var(--accent-dim); border-color: var(--accent-glow); box-shadow: 0 0 0 3px var(--accent-dim) }
+.toggle-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--text-3); position: absolute; top: 3px; left: 3px; transition: transform .2s, background .2s }
+.toggle.on .toggle-dot { transform: translateX(18px); background: var(--accent) }
+.notif-desc { font-size: 11px; color: var(--text-2); line-height: 1.5 }
+.notif-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; padding: 2px 8px; border-radius: 100px; margin-top: 8px }
+
+/* ══════════════════════════════════════════
+   PAUTAS
+══════════════════════════════════════════ */
+.phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04) }
+.phase-card.active-phase { border-left: 3px solid var(--accent) }
+.phase-card-hdr { padding: 16px 18px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px }
+.phase-info     { flex: 1 }
+.phase-status   { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 4px }
+.phase-name     { font-size: 15px; font-weight: 700; margin-bottom: 3px }
+.phase-rango    { font-size: 11px; color: var(--text-3) }
+.phase-kcal-big { font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1 }
+.phase-kcal-lbl { font-size: 10px; color: var(--text-3); text-align: right }
+.phase-macros-row { display: flex; gap: 7px; padding: 0 18px 14px }
+.pm-box { flex: 1; background: var(--layer); border-radius: var(--r-xs); padding: 8px; text-align: center }
+.pm-box-lbl { font-size: 9px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 2px }
+.pm-box-val { font-size: 16px; font-weight: 700 }
+.phase-changes { padding: 0 18px 14px }
+.pci { font-size: 12px; color: var(--text-2); padding: 5px 9px; display: flex; gap: 7px; border-left: 2px solid var(--border-mid); margin-bottom: 4px; line-height: 1.45 }
+.pci-arr { color: var(--text-3); flex-shrink: 0; font-size: 11px }
+.phase-upcoming { padding: 0 18px 14px; font-size: 11px; color: var(--text-3) }
+
+/* ══════════════════════════════════════════
+   TOAST + PANIC FLOAT
+══════════════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--text-1); color: #fff;
+  border-radius: var(--r-sm); padding: 11px 20px;
+  font-size: 13px; font-weight: 500; z-index: 1000;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none; white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(15,23,42,.18), 0 0 0 1px rgba(255,255,255,.08);
+  letter-spacing: .1px;
+}
+.toast.show { transform: translateX(-50%) translateY(0) }
+@media (max-width: 767px) {
+  .toast { bottom: calc(var(--nav-h) + 10px) }
+}
+
+.panic-float {
+  position: fixed; bottom: 20px; right: 20px; z-index: 200;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--red-dim); border: 2px solid rgba(220,38,38,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; cursor: pointer;
+  box-shadow: 0 4px 14px rgba(220,38,38,.2), 0 0 0 4px rgba(220,38,38,.06);
+  transition: all .2s;
+}
+.panic-float:hover { transform: scale(1.1); box-shadow: 0 4px 20px rgba(220,38,38,.32), 0 0 0 6px rgba(220,38,38,.08) }
+@media (max-width: 767px) {
+  .panic-float { bottom: calc(var(--nav-h) + 14px); right: 14px; width: 44px; height: 44px }
+}
+
+/* ══ SVG ICON SYSTEM ══ */
+.ico { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0 }
+.ico svg { display:block }
+.s-icon { width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0 }
+.s-icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round }
+.bn-icon { width:24px; height:24px; display:inline-flex; align-items:center; justify-content:center }
+.bn-icon svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; opacity:inherit }
+.card-title-icon { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px }
+.card-title-icon svg { width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round }
+.logo-ico { display:flex; align-items:center; justify-content:center }
+.logo-ico svg { width:18px; height:18px; stroke:#fff; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round }
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar { width: 4px; height: 4px }
+::-webkit-scrollbar-track { background: transparent }
+::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px }
+
+/* ══════════════════════════════════════════
+   EDITOR DE RUTINAS
+══════════════════════════════════════════ */
+.editor-day-strip { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 16px }
+.editor-day-strip::-webkit-scrollbar { display: none }
+.editor-day-btn { flex-shrink: 0; padding: 8px 14px; background: var(--layer); border: 1px solid var(--border-mid); border-radius: var(--r-sm); font-size: 12px; font-weight: 600; color: var(--text-2); cursor: pointer; transition: all .15s; white-space: nowrap }
+.editor-day-btn.active { background: var(--accent-dim); border-color: var(--accent-glow); color: var(--accent) }
+.editor-day-btn:hover { border-color: var(--accent); color: var(--accent) }
+
+.editor-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-sm); padding: 12px 14px;
+  margin-bottom: 8px; display: flex; gap: 10px; align-items: flex-start;
+  box-shadow: 0 1px 2px rgba(0,0,0,.04); transition: border-color .15s;
+}
+.editor-item:hover { border-color: var(--border-mid) }
+.editor-drag-handle { color: var(--text-3); font-size: 14px; cursor: grab; padding-top: 2px; flex-shrink: 0; user-select: none }
+.editor-drag-handle:active { cursor: grabbing }
+.editor-fields { flex: 1; display: grid; grid-template-columns: 90px 1fr; gap: 6px }
+.editor-fields-row2 { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 110px; gap: 6px }
+.editor-inp {
+  background: var(--layer); border: 1.5px solid var(--border-mid);
+  border-radius: 7px; padding: 7px 10px; font-size: 12px; font-family: var(--font);
+  color: var(--text-1); outline: none; transition: all .2s; width: 100%;
+}
+.editor-inp:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-dim) }
+.editor-select {
+  background: var(--layer); border: 1.5px solid var(--border-mid);
+  border-radius: 7px; padding: 7px 8px; font-size: 12px; font-family: var(--font);
+  color: var(--text-1); outline: none; cursor: pointer; width: 100%;
+  transition: all .2s;
+}
+.editor-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim) }
+.editor-del-btn {
+  width: 28px; height: 28px; border-radius: 6px; border: none;
+  background: var(--layer); color: var(--text-3); font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all .15s; margin-top: 1px;
+}
+.editor-del-btn:hover { background: var(--red-dim); color: var(--red) }
+
+.editor-add-btn {
+  width: 100%; padding: 12px; border: 1.5px dashed var(--accent-glow);
+  border-radius: var(--r-sm); background: transparent; color: var(--accent);
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-bottom: 12px;
+}
+.editor-add-btn:hover { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 0 0 3px var(--accent-dim) }
+
+.editor-type-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 10px;
+}
+
+.editor-info-box {
+  background: var(--purple-dim); border: 1px solid var(--purple-mid);
+  border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 16px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.editor-info-icon { font-size: 16px; flex-shrink: 0 }
+.editor-info-text { font-size: 12px; color: var(--text-2); line-height: 1.6 }
+
+.clarita-banner {
+  background: linear-gradient(135deg, var(--green-dim), rgba(14,165,160,.06));
+  border: 1.5px solid rgba(22,163,74,.2);
+  border-radius: var(--r); padding: 16px 18px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 2px 8px rgba(22,163,74,.06);
+}
+.clarita-avatar {
+  width: 44px; height: 44px; border-radius: 50%; background: var(--green-dim);
+  border: 2px solid rgba(22,163,74,.25); display: flex; align-items: center;
+  justify-content: center; font-size: 22px; flex-shrink: 0;
+}
+.clarita-text .ct-title { font-size: 13px; font-weight: 700; color: var(--text-1); margin-bottom: 2px }
+.clarita-text .ct-sub { font-size: 11px; color: var(--text-2) }
+.clarita-badge { margin-left: auto; background: var(--green-dim); border: 1px solid rgba(22,163,74,.25); border-radius: 100px; padding: 4px 11px; font-size: 10px; font-weight: 600; color: var(--green); white-space: nowrap }
+
+</style>
+</head>
+<body>
+
+<!-- PANIC FLOAT -->
+<div class="panic-float" onclick="logPanic()" title="Registrar impulso de ansiedad">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark"><span class="logo-ico"><svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></div>
+    NutriTracker
+  </div>
+  <div class="topbar-right">
+    <div class="top-phase" id="phaseBadge">Fase 1</div>
+    <div class="top-countdown">
+      <span style="color:var(--text-2);font-size:11px">días</span>
+      <strong id="countdown">—</strong>
+    </div>
+  </div>
+</header>
+
+<!-- ══ APP SHELL ══ -->
+<div class="app-shell">
+
+  <!-- DESKTOP SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section-label">Principal</div>
+    <button class="sidebar-item active" onclick="showTab('dashboard',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
+    </button>
+    <button class="sidebar-item" onclick="showTab('rutina',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/></svg></span> Rutinas
+    </button>
+    <button class="sidebar-item" onclick="showTab('minuta',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span> Minuta
+    </button>
+    <button class="sidebar-item" onclick="showTab('control',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Control de Peso
+    </button>
+
+    <div class="sidebar-section-label" style="margin-top:8px">Seguimiento</div>
+    <button class="sidebar-item" onclick="showTab('cuerpo',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span> Cuerpo
+    </button>
+    <button class="sidebar-item" onclick="showTab('sueno',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span> Sueño
+    </button>
+
+    <div class="sidebar-section-label" style="margin-top:8px">Herramientas</div>
+    <button class="sidebar-item" onclick="showTab('compras',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Lista de Compras
+    </button>
+    <button class="sidebar-item" onclick="showTab('alertas',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Alertas
+    </button>
+    <button class="sidebar-item" onclick="showTab('pautas',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Mis Pautas
+    </button>
+    <button class="sidebar-item" onclick="showTab('editor',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Editor de Rutinas
+    </button>
+  </aside>
+
+  <!-- CONTENT AREA -->
+  <div class="content-area">
+
+    <!-- ══ DASHBOARD ══ -->
+    <section id="s-dashboard" class="section active">
+      <div class="page-header">
+        <div class="page-eyebrow">Tu progreso</div>
+        <div class="page-title">Dashboard</div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-badge b-amber">Inicio</div>
+          <div class="stat-label">Peso inicial</div>
+          <div class="stat-val">88.0<span class="stat-unit"> kg</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-badge b-blue">Actual</div>
+          <div class="stat-label">Peso actual</div>
+          <div class="stat-val" id="statCW">88.0<span class="stat-unit"> kg</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-badge b-teal">Meta</div>
+          <div class="stat-label">Objetivo</div>
+          <div class="stat-val teal">80.0<span class="stat-unit"> kg</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-badge b-green">Avance</div>
+          <div class="stat-label">Progreso</div>
+          <div class="ring-wrap">
+            <svg class="ring-svg" width="48" height="48" viewBox="0 0 52 52">
+              <circle class="ring-track" cx="26" cy="26" r="22"/>
+              <circle class="ring-fill" id="ringFill" cx="26" cy="26" r="22"/>
+            </svg>
+            <div class="ring-pct" id="progressPct">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Adherencia + Panic -->
+      <div class="adh-grid">
+        <div class="card card-sm" style="margin-bottom:0">
+          <div class="card-title">
+            <span class="card-title-icon"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            Cumplimiento de hoy
+          </div>
+          <div class="adh-btns">
+            <button class="adh-btn" id="adh100" onclick="setAdherencia(100)">✓ 100%</button>
+            <button class="adh-btn" id="adh80"  onclick="setAdherencia(80)">≈ 80%</button>
+            <button class="adh-btn" id="adhlow" onclick="setAdherencia(50)">✗ Bajo</button>
+          </div>
+          <div style="margin-top:9px;font-size:11px;color:var(--text-3);font-weight:500" id="streakTxt"></div>
+        </div>
+        <div class="card card-sm" style="margin-bottom:0">
+          <div class="card-title">
+            <span class="card-title-icon"><svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+            Ansiedad hoy
+          </div>
+          <div class="panic-center">
+            <button class="panic-big" onclick="logPanic()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--red)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </button>
+            <div class="panic-num" id="panicCountToday">0</div>
+            <div class="panic-lbl">impulsos registrados</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ritmo -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:14px">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+          Ritmo hacia la meta
+        </div>
+        <div class="ritmo-stats">
+          <div class="rs"><div class="rs-label">Pérdida real</div><div class="rs-val" id="ritmoReal" style="color:var(--accent)">— kg</div></div>
+          <div class="rs"><div class="rs-label">Esperada</div><div class="rs-val" id="ritmoEsp" style="color:var(--text-2)">— kg</div></div>
+          <div class="rs"><div class="rs-label">Velocidad</div><div class="rs-val" id="ritmoVel" style="color:var(--blue)">—/sem</div></div>
+          <div class="rs"><div class="rs-label">Proyección 19 Ago</div><div class="rs-val" id="ritmoProj" style="font-size:14px;color:var(--text-2)">—</div></div>
+        </div>
+        <div class="track-outer"><div class="track-inner track-teal" id="ritmoTrack" style="width:0%"></div></div>
+        <div class="track-labels"><span>18 May</span><span id="trackMid">HOY</span><span>19 Ago</span></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--text-3);font-weight:500" id="ritmoStatus">Calculando...</div>
+      </div>
+
+      <div id="pautaAlertDash"></div>
+
+      <div class="macros-row">
+        <div class="mp"><div class="mp-label">Proteína</div><div class="mp-val" id="mProt" style="color:#ea580c">160<span class="mp-unit">g</span></div></div>
+        <div class="mp"><div class="mp-label">Carbos</div><div class="mp-val" id="mCarb" style="color:var(--blue)">180<span class="mp-unit">g</span></div></div>
+        <div class="mp"><div class="mp-label">Grasa</div><div class="mp-val" id="mGrasa" style="color:var(--amber)">70<span class="mp-unit">g</span></div></div>
+        <div class="mp"><div class="mp-label">Calorías</div><div class="mp-val" id="mKcal" style="color:var(--accent)">2000</div></div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <span class="chart-ttl">Curva de descenso</span>
+          <div class="chart-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Tu peso</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--accent);opacity:.5"></div>Meta 80 kg</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--purple);opacity:.5"></div>Ideal</div>
+          </div>
+        </div>
+        <div style="height:210px;position:relative"><canvas id="weightChart"></canvas></div>
+      </div>
+
+      <!-- Heatmap -->
+      <div class="chart-card">
+        <div class="chart-hdr" style="margin-bottom:4px">
+          <span class="chart-ttl">Mapa de impulsos — últimas 4 semanas</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:4px">Identifica en qué días el estrés genera más ansiedad alimentaria.</div>
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+        <div class="hm-legend"><span>Menos</span><div class="hm-leg-cell hm-0"></div><div class="hm-leg-cell hm-1"></div><div class="hm-leg-cell hm-2"></div><div class="hm-leg-cell hm-3"></div><div class="hm-leg-cell hm-4"></div><span>Más impulsos</span></div>
+      </div>
+
+      <!-- Water -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
+          Hidratación
+          <span style="margin-left:auto;font-size:12px;font-weight:500;color:var(--blue)" id="waterText">0 / 2500 ml</span>
+        </div>
+        <div class="water-track"><div class="water-fill" id="waterFill"></div></div>
+        <div class="water-btns">
+          <button class="water-btn" onclick="addWater(250)">+250 ml</button>
+          <button class="water-btn" onclick="addWater(500)">+500 ml</button>
+          <button class="water-btn" onclick="addWater(750)">+750 ml</button>
+          <button class="water-reset" onclick="resetWater()">↺ Reset</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ RUTINA ══ -->
+    <section id="s-rutina" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Tu plan diario</div>
+        <div class="page-title">Rutinas</div>
+      </div>
+      <div class="day-strip">
+        <button class="day-btn" onclick="loadDay('lunes',this)"><span class="d-abbr">Lun</span><span class="d-name">L</span></button>
+        <button class="day-btn" onclick="loadDay('martes',this)"><span class="d-abbr">Mar</span><span class="d-name">M</span></button>
+        <button class="day-btn" onclick="loadDay('miercoles',this)"><span class="d-abbr">Mié</span><span class="d-name">X</span></button>
+        <button class="day-btn" onclick="loadDay('jueves',this)"><span class="d-abbr">Jue</span><span class="d-name">J</span></button>
+        <button class="day-btn" onclick="loadDay('viernes',this)"><span class="d-abbr">Vie</span><span class="d-name">V</span></button>
+        <button class="day-btn" onclick="loadDay('sabado',this)"><span class="d-abbr">Sáb</span><span class="d-name">S</span></button>
+        <button class="day-btn" onclick="loadDay('domingo',this)"><span class="d-abbr">Dom</span><span class="d-name">D</span></button>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <!-- ══ MINUTA ══ -->
+    <section id="s-minuta" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Tu alimentación</div>
+        <div class="page-title">Minuta</div>
+      </div>
+      <div class="kcal-banner">
+        <div><div class="kb-main" id="minutaKcal">2.000</div><div class="kb-label" id="minutaLabel">kcal / día · déficit −600 kcal · Fase 1</div></div>
+        <div class="kb-right" id="minutaPhaseInfo">Fase 1<br>18 May → 15 Jun<br>Semanas 1–4</div>
+      </div>
+      <div class="meals-grid" id="mealsGrid"></div>
+      <div class="anxiety-box">
+        <div class="anxiety-ttl">Protocolo Anti-Ansiedad</div>
+        <div class="anxiety-sub">Botón de pánico para jornadas de diseño y entregas:</div>
+        <div class="chips">
+          <span class="chip">Pepinillos</span><span class="chip">Jalea s/azúcar</span>
+          <span class="chip">Bastones verdura</span><span class="chip">Agua c/gas y limón</span>
+          <span class="chip">Cabritas al aire</span><span class="chip">Frutos rojos congelados</span>
+        </div>
+        <div style="background:var(--layer);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--text-2);margin-top:10px;line-height:1.6"><strong style="color:var(--text-1)">Fines de semana:</strong> Asados de cortes magros o mariscal estilo Chiloé en el almuerzo sin romper el déficit.</div>
+      </div>
+    </section>
+
+    <!-- ══ CONTROL ══ -->
+    <section id="s-control" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Seguimiento</div>
+        <div class="page-title">Control de Peso</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
+          Registrar peso de hoy
+        </div>
+        <div class="input-row">
+          <input class="w-input" type="number" id="weightInput" step="0.1" placeholder="Ej: 87.5" min="50" max="150">
+          <button class="btn-primary" style="width:auto;padding:12px 22px" onclick="addWeightLog()">Guardar</button>
+        </div>
+        <div id="nextEvalInfo" style="font-size:11px;color:var(--text-3);margin-top:6px;font-weight:500"></div>
+      </div>
+      <div class="feedback" id="feedbackCard"><div class="fb-ttl" id="feedbackTitle"></div><div class="fb-txt" id="feedbackText"></div></div>
+      <div id="pautaAlertControl"></div>
+      <div class="history-table">
+        <table><thead><tr><th>Fecha</th><th>Peso</th><th>Variación</th><th>Semana</th></tr></thead>
+        <tbody id="historyBody"></tbody></table>
+      </div>
+    </section>
+
+    <!-- ══ CUERPO ══ -->
+    <section id="s-cuerpo" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Más allá de la balanza</div>
+        <div class="page-title">Evolución Corporal</div>
+        <div class="page-sub">El peso engaña. Estas métricas muestran la pérdida de grasa real.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+          Perímetros semanales
+        </div>
+        <div class="medidas-grid">
+          <div class="medida-wrap"><label class="medida-label">Cintura (cm)</label><input class="medida-inp" type="number" id="inCintura" step="0.5" placeholder="Ej: 92.0"></div>
+          <div class="medida-wrap"><label class="medida-label">Pecho (cm)</label><input class="medida-inp" type="number" id="inPecho" step="0.5" placeholder="Ej: 102.0"></div>
+          <div class="medida-wrap"><label class="medida-label">Cadera (cm)</label><input class="medida-inp" type="number" id="inCadera" step="0.5" placeholder="Ej: 100.0"></div>
+        </div>
+        <button class="btn-primary" onclick="saveMedidas()">Guardar medidas de hoy</button>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <span class="chart-ttl">Curva de perímetros</span>
+          <div class="chart-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--rose)"></div>Cintura</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Pecho</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div>Cadera</div>
+          </div>
+        </div>
+        <div style="height:180px;position:relative"><canvas id="medidasChart"></canvas></div>
+      </div>
+
+      <div class="perim-history">
+        <div class="perim-row perim-hdr"><span>Fecha</span><span>Cintura</span><span>Pecho</span><span>Cadera</span></div>
+        <div id="medidasBody"></div>
+      </div>
+
+      <div style="margin:20px 0 12px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Galería de progreso
+        </div>
+        <div style="font-size:12px;color:var(--text-2);line-height:1.5">Foto frontal cada 15 días. Ver los cambios en tu estructura es el mayor inyector de motivación.</div>
+      </div>
+      <div class="foto-grid" id="fotoGrid"></div>
+      <button class="btn-secondary" onclick="toggleCompare()">Comparar Antes / Después</button>
+      <div class="compare-view" id="compareView"><div class="compare-inner" id="compareInner"></div></div>
+    </section>
+
+    <!-- ══ SUEÑO ══ -->
+    <section id="s-sueno" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Recuperación</div>
+        <div class="page-title">Tracker de Sueño</div>
+        <div class="page-sub">Los días con ≥7.5 hrs la balanza baja más rápido. El sueño es donde ocurre la pérdida de grasa real.</div>
+      </div>
+      <div class="sleep-form">
+        <div class="sleep-grp"><label class="sleep-lbl">Me acosté a las</label><input class="sleep-inp" type="time" id="sleepBed" value="23:30"></div>
+        <div class="sleep-grp"><label class="sleep-lbl">Me desperté a las</label><input class="sleep-inp" type="time" id="sleepWake" value="07:30"></div>
+      </div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="card-title" style="margin-bottom:12px">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><path d="M17 8l4 4-4 4"/><path d="M3 12h18"/></svg></span>
+          ¿Cómo desperté?
+        </div>
+        <div class="quality-btns">
+          <button class="q-btn" id="qBad" onclick="setQuality('bad')">Agotado</button>
+          <button class="q-btn" id="qOk" onclick="setQuality('ok')">Bien</button>
+          <button class="q-btn" id="qGreat" onclick="setQuality('great')">Listo para entrenar</button>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-bottom:14px" onclick="saveSleep()">Guardar registro de hoy</button>
+      <div class="chart-card" style="margin-bottom:14px">
+        <div class="chart-hdr">
+          <span class="chart-ttl">Horas de sueño vs. progreso de peso</span>
+          <div class="chart-legend">
+            <div class="leg-item"><div class="leg-dot" style="background:var(--blue)"></div>Hrs sueño</div>
+            <div class="leg-item"><div class="leg-dot" style="background:var(--accent)"></div>Peso</div>
+          </div>
+        </div>
+        <div style="height:180px;position:relative"><canvas id="sleepChart"></canvas></div>
+      </div>
+      <div class="sleep-history" id="sleepHistory"></div>
+    </section>
+
+    <!-- ══ COMPRAS ══ -->
+    <section id="s-compras" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Lista inteligente</div>
+        <div class="page-title">Lista de Compras</div>
+        <div class="page-sub">Generada automáticamente según tu fase activa. Toca un ítem para marcarlo.</div>
+      </div>
+      <div class="shop-phase-strip">
+        <button class="shop-phase-btn active" onclick="setShopPhase(1,this)">Fase 1</button>
+        <button class="shop-phase-btn" onclick="setShopPhase(2,this)">Fase 2</button>
+        <button class="shop-phase-btn" onclick="setShopPhase(3,this)">Fase 3</button>
+      </div>
+      <div class="shop-actions">
+        <button class="shop-act-btn" onclick="clearShopChecked()">↺ Limpiar tachados</button>
+        <button class="shop-act-btn" onclick="copyShopList()">⎘ Copiar lista</button>
+      </div>
+      <div id="shopListContainer"></div>
+    </section>
+
+    <!-- ══ ALERTAS ══ -->
+    <section id="s-alertas" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Notificaciones</div>
+        <div class="page-title">Alertas</div>
+        <div class="page-sub">De una app pasiva a una activa. Activa los permisos del navegador para recibir recordatorios reales.</div>
+      </div>
+      <div class="notif-grid">
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Hidratación</div><div class="toggle" id="togwater" onclick="toggleNotif('water')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Recordatorio cada 90 min (08:30–17:30) mientras diseñas.</div><span class="notif-badge" style="background:var(--blue-dim);color:var(--blue)">Cada 90 min</span></div>
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Frontera nocturna</div><div class="toggle" id="tognight" onclick="toggleNotif('night')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Apagar pantallas 23:30 de lunes a viernes.</div><span class="notif-badge" style="background:var(--purple-dim);color:var(--purple)">23:30 L–V</span></div>
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Colación</div><div class="toggle" id="togsnack" onclick="toggleNotif('snack')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Aviso a las 17:20 para preparar colación antes de salir.</div><span class="notif-badge" style="background:var(--accent-dim);color:var(--accent)">17:20 diario</span></div>
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Pesaje lunes</div><div class="toggle" id="togweight" onclick="toggleNotif('weight')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Lunes 07:45 — pesarte en ayunas y registrar.</div><span class="notif-badge" style="background:var(--amber-dim);color:var(--amber)">Lun 07:45</span></div>
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Medidas</div><div class="toggle" id="togmedidas" onclick="toggleNotif('medidas')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Recordatorio quincenal, sábado 09:00.</div><span class="notif-badge" style="background:var(--rose-dim);color:var(--rose)">Quincenal</span></div>
+        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Foto progreso</div><div class="toggle" id="togfoto" onclick="toggleNotif('foto')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Cada 15 días, domingo 10:00 — foto frontal y lateral.</div><span class="notif-badge" style="background:var(--purple-dim);color:var(--purple)">Quincenal</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:13px;margin-bottom:8px">Estado del navegador</div>
+        <div id="notifPermStatus" style="font-size:12px;color:var(--text-2);margin-bottom:10px"></div>
+        <button onclick="requestNotifPerm()" style="padding:10px 18px;background:transparent;border:1px solid var(--accent);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">Activar permisos</button>
+      </div>
+    </section>
+
+    <!-- ══ PAUTAS ══ -->
+    <section id="s-pautas" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Nutrición adaptativa</div>
+        <div class="page-title">Mis Pautas</div>
+        <div class="page-sub">El plan se ajusta automáticamente cada 4 semanas — o antes si el ritmo lo exige.</div>
+      </div>
+      <div id="pautasHistoryList"></div>
+    </section>
+
+    <!-- ══ EDITOR DE RUTINAS ══ -->
+    <section id="s-editor" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Personalización</div>
+        <div class="page-title">Editor de Rutinas</div>
+        <div class="page-sub">Agrega, edita o elimina bloques en cualquier día. Tus cambios se guardan automáticamente.</div>
+      </div>
+
+      <!-- Clarita Banner -->
+      <div class="clarita-banner">
+        <div class="clarita-avatar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="4" cy="8" r="2"/><path d="M12 17c-2.5 0-5-1.5-5-4 0-3 2-5 5-5s5 2 5 5c0 2.5-2.5 4-5 4z"/><path d="M7 21c0-2 2-3 5-3s5 1 5 3"/></svg>
+        </div>
+        <div class="clarita-text">
+          <div class="ct-title">Paseo con Clarita</div>
+          <div class="ct-sub">Todos los días a las 20:10 · 30 minutos · Al llegar del gym</div>
+        </div>
+        <div class="clarita-badge">✓ En todas las rutinas</div>
+      </div>
+
+      <div class="editor-info-box">
+        <div class="editor-info-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="editor-info-text">
+          <strong style="color:var(--text-1)">Cómo usar el editor:</strong> Selecciona el día, luego edita directamente cada bloque — la hora, el nombre, la descripción y el tipo. Arrastra ⠿ para reordenar. Usa <strong style="color:var(--accent)">+ Agregar bloque</strong> para añadir uno nuevo. Todo se guarda al hacer clic en <strong style="color:var(--green)">Guardar día</strong>.
+        </div>
+      </div>
+
+      <!-- Selector de día del editor -->
+      <div class="editor-day-strip" id="editorDayStrip">
+        <button class="editor-day-btn" onclick="editorLoadDay('lunes',this)">Lunes</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('martes',this)">Martes</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('miercoles',this)">Miércoles</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('jueves',this)">Jueves</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('viernes',this)">Viernes</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('sabado',this)">Sábado</button>
+        <button class="editor-day-btn" onclick="editorLoadDay('domingo',this)">Domingo</button>
+      </div>
+
+      <!-- Lista editable -->
+      <div id="editorList"></div>
+
+      <!-- Agregar bloque -->
+      <button class="editor-add-btn" onclick="editorAddItem()">
+        <span style="font-size:16px">+</span> Agregar bloque
+      </button>
+
+      <!-- Guardar -->
+      <div style="display:flex;gap:9px;margin-bottom:20px">
+        <button class="btn-primary" onclick="editorSaveDay()" style="flex:1">
+          ✓ Guardar cambios del día
+        </button>
+        <button onclick="editorResetDay()" style="padding:13px 16px;background:transparent;border:1px solid var(--border-mid);border-radius:var(--r-sm);color:var(--text-2);font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border-mid)';this.style.color='var(--text-2)'">
+          ↺ Restaurar original
+        </button>
+      </div>
+
+      <!-- Vista previa -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title" style="margin-bottom:14px">
+          <span class="card-title-icon"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          Vista previa del día
+          <span id="editorPreviewDayLabel" style="margin-left:auto;font-size:12px;color:var(--text-3);font-weight:500"></span>
+        </div>
+        <div class="timeline" id="editorPreview"></div>
+      </div>
+    </section>
+
+  </div><!-- end content-area -->
+</div><!-- end app-shell -->
+
+<!-- ══ BOTTOM NAV (mobile only) ══ -->
+<nav class="bottom-nav" id="bottomNav">
+  <button class="bn-item active" onclick="showTab('dashboard',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+    <span class="bn-label">Dashboard</span>
+  </button>
+  <button class="bn-item" onclick="showTab('rutina',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+    <span class="bn-label">Rutinas</span>
+  </button>
+  <button class="bn-item" onclick="showTab('minuta',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+    <span class="bn-label">Minuta</span>
+  </button>
+  <button class="bn-item" onclick="showTab('control',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+    <span class="bn-label">Control</span>
+  </button>
+  <button class="bn-item" onclick="showTab('cuerpo',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+    <span class="bn-label">Cuerpo</span>
+  </button>
+  <button class="bn-item" onclick="showTab('sueno',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+    <span class="bn-label">Sueño</span>
+  </button>
+  <button class="bn-item" onclick="showTab('compras',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+    <span class="bn-label">Compras</span>
+  </button>
+  <button class="bn-item" onclick="showTab('alertas',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
+    <span class="bn-label">Alertas</span>
+  </button>
+  <button class="bn-item" onclick="showTab('pautas',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+    <span class="bn-label">Pautas</span>
+  </button>
+  <button class="bn-item" onclick="showTab('editor',this)">
+    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+    <span class="bn-label">Editor</span>
+  </button>
+</nav>
+
+<script>
+/* ══════ CONFIG ══════ */
+const START_DATE=new Date('2025-05-18T12:00:00'),END_DATE=new Date('2025-08-19T12:00:00');
+const GOAL=80.0,START_W=88.0,TOTAL_DAYS=Math.ceil((END_DATE-START_DATE)/86400000);
+
+const FASES=[
+  {id:1,nombre:'Fase 1 — Ajuste Inicial',rango:'18 May → 15 Jun',kcal:2000,prot:160,carb:180,grasa:70,deficit:600,semanas:[1,2,3,4],descripcion:'Déficit moderado de 600 kcal preservando masa muscular para gym y básquet.',cambios:['Carbohidratos complejos en almuerzo y cena post-gym','Proteínas altas (160g) para proteger músculo','Grasas saludables para equilibrio hormonal','Colación estratégica al salir de la oficina']},
+  {id:2,nombre:'Fase 2 — Optimización',rango:'16 Jun → 13 Jul',kcal:1800,prot:165,carb:155,grasa:65,deficit:800,semanas:[5,6,7,8],descripcion:'Déficit de 800 kcal. Metabolismo adaptado; reducimos carbos nocturnos.',cambios:['Eliminar arroz/papa cena días de básquetbol','Reducir carbo post-gym a ¼ taza','Mantener pre-entreno intacto','1 recarga estratégica: sábado almuerzo libre']},
+  {id:3,nombre:'Fase 3 — Aceleración Final',rango:'14 Jul → 19 Ago',kcal:1650,prot:170,carb:130,grasa:60,deficit:950,semanas:[9,10,11,12,13],descripcion:'Déficit agresivo seguro. Carbos solo en almuerzo y pre-entreno. Las últimas semanas son determinantes.',cambios:['Carbos SOLO en almuerzo y colación pre-gym','Cenas: proteína magra + verduras únicamente','Sin pan en desayuno: huevos + palta + café','Recarga semanal sábado almuerzo','Hidratación subir a 3 litros diarios']}
+];
+
+/* ══ STATE ══ */
+let weights=JSON.parse(localStorage.getItem('nt_weights'))||[{date:'2025-05-18',weight:88.0}];
+let water=parseInt(localStorage.getItem('nt_water'))||0;
+let pautasAceptadas=JSON.parse(localStorage.getItem('nt_pautas'))||[{faseId:1,fechaActivacion:'2025-05-18',kcal:2000,prot:160,carb:180,grasa:70}];
+let pautaPendiente=JSON.parse(localStorage.getItem('nt_pending'))||null;
+let sleepLogs=JSON.parse(localStorage.getItem('nt_sleep'))||[];
+let medidas=JSON.parse(localStorage.getItem('nt_medidas'))||[];
+let panicLog=JSON.parse(localStorage.getItem('nt_panic'))||[];
+let adherencia=JSON.parse(localStorage.getItem('nt_adh'))||{};
+let notifSettings=JSON.parse(localStorage.getItem('nt_notif'))||{water:false,night:false,snack:false,weight:false,medidas:false,foto:false};
+let shopChecked=JSON.parse(localStorage.getItem('nt_shop'))||{};
+let fotos=JSON.parse(localStorage.getItem('nt_fotos'))||[];
+let shopPhase=1,sleepQuality=null,notifIntervals={};
+let weightChart,medidasChartInst,sleepChartInst;
+
+function save(){
+  localStorage.setItem('nt_weights',JSON.stringify(weights));
+  localStorage.setItem('nt_pautas',JSON.stringify(pautasAceptadas));
+  localStorage.setItem('nt_pending',JSON.stringify(pautaPendiente));
+  localStorage.setItem('nt_sleep',JSON.stringify(sleepLogs));
+  localStorage.setItem('nt_medidas',JSON.stringify(medidas));
+  localStorage.setItem('nt_panic',JSON.stringify(panicLog));
+  localStorage.setItem('nt_adh',JSON.stringify(adherencia));
+  localStorage.setItem('nt_notif',JSON.stringify(notifSettings));
+  localStorage.setItem('nt_shop',JSON.stringify(shopChecked));
+  localStorage.setItem('nt_fotos',JSON.stringify(fotos));
+}
+
+/* ══ TIME ══ */
+function today(){return new Date(new Date().toDateString())}
+function todayStr(){return today().toISOString().split('T')[0]}
+function daysSinceStart(){return Math.max(0,Math.ceil((today()-START_DATE)/86400000))}
+function daysLeft(){return Math.max(0,Math.ceil((END_DATE-today())/86400000))}
+function weekNum(){return Math.ceil((daysSinceStart()+1)/7)}
+function activePauta(){if(!pautasAceptadas.length)return FASES[0];const last=pautasAceptadas[pautasAceptadas.length-1];return{...(FASES.find(f=>f.id===last.faseId)||FASES[0]),...last};}
+
+/* ══ TOAST ══ */
+function showToast(msg,dur=2600){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+
+/* ══ TABS ══ */
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  // Desktop sidebar
+  document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+  // Mobile bottom nav
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  if(btn){
+    btn.classList.add('active');
+    // Sync the other nav
+    const isMobile=window.innerWidth<768;
+    if(isMobile){
+      const sideBtn=document.querySelector(`.sidebar-item[onclick="showTab('${id}',this)"]`);
+      if(sideBtn)sideBtn.classList.add('active');
+    } else {
+      const bnBtn=document.querySelector(`.bn-item[onclick="showTab('${id}',this)"]`);
+      if(bnBtn)bnBtn.classList.add('active');
+    }
+  }
+  // Scroll content area to top
+  const ca=document.querySelector('.content-area');if(ca)ca.scrollTop=0;
+  const map={dashboard:updateAll,control:()=>{renderHistory();updateEvalInfo();},pautas:renderPautasPage,minuta:renderMinuta,cuerpo:renderCuerpo,sueno:renderSueno,compras:generateShopList,alertas:renderAlertas,editor:()=>{editorLoadDay(editorCurrentDay,document.querySelector('.editor-day-btn'));}};
+  if(map[id])map[id]();
+}
+
+/* ══ ADHERENCIA ══ */
+function setAdherencia(pct){adherencia[todayStr()]=pct;save();renderAdherencia();showToast(pct===100?'✓ Minuta 100% cumplida':pct===80?'≈ Buen día, 80% cumplido':'↓ Registrado. Mañana mejor');}
+function renderAdherencia(){
+  const val=adherencia[todayStr()];
+  ['adh100','adh80','adhlow'].forEach(id=>document.getElementById(id).className='adh-btn');
+  if(val===100)document.getElementById('adh100').classList.add('sel-100');
+  else if(val===80)document.getElementById('adh80').classList.add('sel-80');
+  else if(val)document.getElementById('adhlow').classList.add('sel-low');
+  let streak=0;for(let i=0;i<30;i++){const d=new Date(today());d.setDate(d.getDate()-i);const k=d.toISOString().split('T')[0];if(adherencia[k]&&adherencia[k]>=80)streak++;else if(i>0)break;}
+  const el=document.getElementById('streakTxt');if(el)el.textContent=streak>1?`${streak} días consecutivos ≥80%`:'';
+}
+
+/* ══ PANIC ══ */
+function logPanic(){const now=new Date();panicLog.push({ts:now.toISOString(),date:todayStr(),hour:now.getHours()});save();renderPanicToday();renderHeatmap();showToast('Impulso registrado. Aplica el protocolo anti-ansiedad.');}
+function renderPanicToday(){document.getElementById('panicCountToday').textContent=panicLog.filter(p=>p.date===todayStr()).length;}
+function renderHeatmap(){
+  const grid=document.getElementById('heatmapGrid');if(!grid)return;grid.innerHTML='';
+  ['L','M','X','J','V','S','D'].forEach(d=>{const h=document.createElement('div');h.className='hm-day-label';h.textContent=d;grid.appendChild(h);});
+  for(let w=3;w>=0;w--){for(let d=0;d<7;d++){
+    const date=new Date(today()),dow=date.getDay()===0?6:date.getDay()-1;date.setDate(date.getDate()-(w*7)-dow+d);
+    const ds=date.toISOString().split('T')[0],count=panicLog.filter(p=>p.date===ds).length;
+    const cell=document.createElement('div');cell.className='hm-cell hm-'+Math.min(count,4);cell.title=`${ds}: ${count} impulso${count!==1?'s':''}`;grid.appendChild(cell);
+  }}
+}
+
+/* ══ EVALUACIÓN ══ */
+function evaluar(){
+  if(weights.length<2||pautaPendiente)return null;
+  const cw=weights[weights.length-1].weight,de=daysSinceStart(),we=de/7,wl=daysLeft()/7;
+  const kgL=START_W-cw,kgN=cw-GOAL;if(we<1)return null;
+  const rR=kgL/we,nR=wl>0?kgN/wl:99,p=activePauta(),expR=(p.deficit||600)/7700;
+  const expL=we*expR,proj=cw-(rR*wl),gap=expL-kgL,cId=p.faseId||1;if(cId>=3)return null;
+  const wk=weekNum(),nF=FASES.find(f=>f.semanas[0]===wk&&f.id>cId);
+  const gA=gap>0.5&&we>=2,pF=proj>GOAL+0.5&&we>=2;
+  let motivo=null,nueva=null;
+  if(nF){motivo='natural';nueva=nF;}else if(gA){motivo='ritmo_lento';nueva=FASES.find(f=>f.id===cId+1);}else if(pF){motivo='proyeccion';nueva=FASES.find(f=>f.id===cId+1);}
+  if(!nueva||!motivo)return null;
+  let fa={...nueva};if(pF&&nR>expR*1.3){const ex=Math.min(150,Math.round((nR-expR)*7700/7/10)*10);fa.kcal-=ex;fa.carb-=Math.round(ex*.5/4);fa.grasa-=Math.round(ex*.3/9);fa.deficit=2600-fa.kcal;fa.nombre+=' (ajustada)';}
+  return{fase:fa,motivo,realRate:rR.toFixed(2),neededRate:nR.toFixed(2),projFinal:proj.toFixed(1)};
+}
+function renderPautaAlert(cid,ev){
+  const c=document.getElementById(cid);if(!c)return;if(!ev){c.innerHTML='';return;}
+  const fase=ev.fase,cls=fase.id<=1?'pauta-teal':'pauta-amber';
+  const iSvg={
+    1:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10" stroke-dasharray="3 3"/></svg>`,
+    2:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    3:`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><path d="M12 2v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>`
+  };
+  const mt={natural:'Han pasado 4 semanas. Tu cuerpo está listo para el siguiente nivel de déficit.',ritmo_lento:`Tu ritmo (${ev.realRate} kg/sem) es menor al esperado. Necesitas ${ev.neededRate} kg/semana para la meta.`,proyeccion:`Con tu ritmo proyectas ~${ev.projFinal} kg al 19 de agosto. Ajustamos para cerrar la brecha.`};
+  c.innerHTML=`<div class="pauta-alert ${cls}"><div class="pauta-hdr"><span class="pauta-icon">${iSvg[fase.id]||''}</span><div><div class="pauta-ttl">${fase.nombre}</div><div class="pauta-sub">${fase.rango}</div></div></div><div class="pauta-body"><div style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px">${mt[ev.motivo]||''}</div><div class="pauta-macros"><div class="pm"><div class="pm-label">Calorías</div><div class="pm-val">${fase.kcal}</div></div><div class="pm"><div class="pm-label">Proteína</div><div class="pm-val">${fase.prot}g</div></div><div class="pm"><div class="pm-label">Carbos</div><div class="pm-val">${fase.carb}g</div></div><div class="pm"><div class="pm-label">Grasa</div><div class="pm-val">${fase.grasa}g</div></div></div><div class="pauta-desc" style="font-size:12px;color:var(--text-2);margin-bottom:10px">${fase.descripcion}</div><div class="pauta-changes">${fase.cambios.map(ch=>`<div class="pc"><span class="pc-arr">→</span>${ch}</div>`).join('')}</div><div class="pauta-btns"><button class="p-act-btn" onclick="aceptarPauta()">Activar nueva pauta</button><button class="p-skip-btn" onclick="rechazarPauta()">Mantener actual por ahora</button></div></div></div>`;
+}
+function aceptarPauta(){if(!pautaPendiente)return;pautasAceptadas.push({faseId:pautaPendiente.fase.id,fechaActivacion:todayStr(),kcal:pautaPendiente.fase.kcal,prot:pautaPendiente.fase.prot,carb:pautaPendiente.fase.carb,grasa:pautaPendiente.fase.grasa,nombre:pautaPendiente.fase.nombre,rango:pautaPendiente.fase.rango});pautaPendiente=null;save();updateAll();renderMinuta();showToast('✓ Nueva pauta activada');}
+function rechazarPauta(){pautaPendiente=null;save();['pautaAlertDash','pautaAlertControl'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='';});}
+
+/* ══ UPDATE ALL ══ */
+function updateAll(){
+  document.getElementById('countdown').textContent=daysLeft();
+  const id=activePauta().faseId||1;
+  document.getElementById('phaseBadge').textContent='Fase '+id;
+  const cw=weights[weights.length-1].weight;
+  document.getElementById('statCW').innerHTML=cw+'<span class="stat-unit"> kg</span>';
+  const pct=Math.min(100,Math.max(0,((START_W-cw)/(START_W-GOAL))*100));
+  document.getElementById('progressPct').textContent=pct.toFixed(1)+'%';
+  const C=2*Math.PI*22,off=C-(pct/100)*C,r=document.getElementById('ringFill');
+  r.style.strokeDasharray=C;r.style.strokeDashoffset=off;
+  updateRitmo();updateMacros();renderChart();renderWater();renderAdherencia();renderPanicToday();renderHeatmap();
+  const ev=evaluar();if(ev&&!pautaPendiente){pautaPendiente=ev;save();}
+  renderPautaAlert('pautaAlertDash',pautaPendiente);
+}
+function updateMacros(){const p=activePauta();document.getElementById('mProt').innerHTML=`${p.prot||160}<span class="mp-unit">g</span>`;document.getElementById('mCarb').innerHTML=`${p.carb||180}<span class="mp-unit">g</span>`;document.getElementById('mGrasa').innerHTML=`${p.grasa||70}<span class="mp-unit">g</span>`;document.getElementById('mKcal').innerHTML=`${p.kcal||2000}`;}
+function updateRitmo(){
+  const cw=weights[weights.length-1].weight,de=daysSinceStart(),we=de/7,wl=daysLeft()/7;
+  const kgL=START_W-cw,kgN=cw-GOAL,rR=we>0?kgL/we:0,nR=wl>0?kgN/wl:0;
+  const p=activePauta(),expL=we*((p.deficit||600)/7700),proj=cw-(rR*wl),tp=Math.min(100,(de/TOTAL_DAYS)*100);
+  document.getElementById('ritmoReal').textContent=kgL.toFixed(1)+' kg';
+  document.getElementById('ritmoEsp').textContent=expL.toFixed(1)+' kg';
+  document.getElementById('ritmoVel').textContent=rR.toFixed(2)+'/sem';
+  document.getElementById('ritmoProj').textContent=proj.toFixed(1)+' kg';
+  document.getElementById('trackMid').textContent=`HOY · sem ${weekNum()}`;
+  const track=document.getElementById('ritmoTrack');track.style.width=tp+'%';
+  let st,cls;
+  if(de<7){st='Inicio del programa — registra tu primer peso para activar el análisis.';cls='track-teal';}
+  else if(rR>=nR*.9){st='✓ En ritmo perfecto para alcanzar los 80 kg el 19 de agosto.';cls='track-teal';}
+  else if(rR>=nR*.65){st='Ritmo algo lento — considera activar la nueva pauta.';cls='track-amber';}
+  else{st='⚠ Ritmo insuficiente — ajuste de plan recomendado.';cls='track-red';}
+  document.getElementById('ritmoStatus').textContent=st;track.className='track-inner '+cls;
+}
+
+/* ══ CHART ══ */
+function renderChart(){
+  const ctx=document.getElementById('weightChart').getContext('2d');
+  const labels=weights.map(w=>{const p=w.date.split('-');return`${p[2]}/${p[1]}`;});
+  const data=weights.map(w=>w.weight);
+  const wks=Math.ceil(TOTAL_DAYS/7),idealL=[],idealD=[];
+  for(let i=0;i<=wks;i++){const d=new Date(START_DATE);d.setDate(d.getDate()+i*7);const p=d.toISOString().split('T')[0].split('-');idealL.push(`${p[2]}/${p[1]}`);idealD.push(+(START_W-(8*i/wks)).toFixed(2));}
+  const allL=[...new Set([...idealL,...labels])].sort();
+  if(weightChart)weightChart.destroy();
+  weightChart=new Chart(ctx,{type:'line',data:{labels:allL,datasets:[{label:'Tu peso',data:allL.map(l=>{const i=labels.indexOf(l);return i>=0?data[i]:null;}),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.07)',borderWidth:2.5,tension:.4,fill:true,pointBackgroundColor:'#f8f9fb',pointBorderColor:'#2563eb',pointRadius:4,pointHoverRadius:6,spanGaps:false},{label:'Meta 80 kg',data:allL.map(()=>80),borderColor:'rgba(14,165,160,.5)',borderWidth:1.5,borderDash:[6,4],pointRadius:0},{label:'Ideal',data:allL.map(l=>{const i=idealL.indexOf(l);return i>=0?idealD[i]:null;}),borderColor:'rgba(124,58,237,.35)',borderWidth:1.5,borderDash:[3,3],pointRadius:0,tension:.3,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:78,max:90,grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#94a3b8',font:{family:'Inter',size:11}}},x:{grid:{display:false},ticks:{color:'#94a3b8',font:{family:'Inter',size:11},maxTicksLimit:8}}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'rgba(0,0,0,.1)',borderWidth:1,titleColor:'#0f172a',bodyColor:'#64748b',titleFont:{family:'Inter',weight:'600',size:13},bodyFont:{family:'Inter',size:11},boxShadow:'0 4px 16px rgba(0,0,0,.08)'}}}});
+}
+function renderWater(){const pct=Math.min(100,(water/2500)*100);document.getElementById('waterFill').style.width=pct+'%';document.getElementById('waterText').textContent=`${water} / 2500 ml`;}
+function addWater(ml){water=Math.min(water+ml,3000);localStorage.setItem('nt_water',water);renderWater();}
+function resetWater(){water=0;localStorage.setItem('nt_water',water);renderWater();}
+
+/* ══ MINUTA ══ */
+function renderMinuta(){
+  const p=activePauta(),fId=p.faseId||1,kcal=p.kcal||2000,def=p.deficit||600;
+  document.getElementById('minutaKcal').textContent=kcal.toLocaleString('es');
+  document.getElementById('minutaLabel').textContent=`kcal / día · déficit −${def} kcal · Fase ${fId}`;
+  document.getElementById('minutaPhaseInfo').innerHTML=`Fase ${fId}<br>${p.rango||'18 May → 15 Jun'}<br>Semanas ${(FASES.find(f=>f.id===fId)||FASES[0]).semanas[0]}–${(FASES.find(f=>f.id===fId)||FASES[0]).semanas.slice(-1)[0]}`;
+  const des=fId<3?`<li class="mi"><strong>Opción A</strong> 2 rebanadas pan integral + 2 huevos + ¼ palta + té/café s/azúcar.</li><li class="mi"><strong>Opción B</strong> 1 taza leche descremada + 4 cdas avena + arándanos.</li>`:`<li class="mi"><strong>Fase 3</strong> Sin pan. 3 huevos + ¼ palta + café negro s/azúcar.</li>`;
+  const cAlm=fId===1?'Arroz integral o quinoa (1 taza cocida).':fId===2?'Arroz integral (¾ taza). Porción reducida.':'Solo ½ taza. Completar con verduras de volumen.';
+  const cGym=fId===1?'½ taza arroz o papa para reponer glucógeno.':fId===2?'¼ taza arroz/papa.':'Sin carbohidrato. Solo proteína + verduras al vapor.';
+  const notaF=fId===3?`<li class="mi"><strong>Regla F3</strong> Cenas = proteína + verduras. Sin granos en la noche.</li>`:'';
+  document.getElementById('mealsGrid').innerHTML=`
+  <div class="meal-card" style="border-top:3px solid var(--amber)"><span class="meal-tag" style="background:var(--amber-dim);color:var(--amber)">07:30 – 08:00</span><div class="meal-ttl">Desayuno</div><ul class="meal-items">${des}</ul></div>
+  <div class="meal-card" style="border-top:3px solid #ea580c"><span class="meal-tag" style="background:rgba(234,88,12,.1);color:#ea580c">13:30</span><div class="meal-ttl">Almuerzo</div><ul class="meal-items"><li class="mi"><strong>Proteína (150g)</strong> Pollo, lomo liso, pavo o pescado.</li><li class="mi"><strong>Carbo</strong> ${cAlm}</li><li class="mi"><strong>Libre</strong> Ensalada verde + 1 cda aceite oliva.</li></ul></div>
+  <div class="meal-card" style="border-top:3px solid var(--blue)"><span class="meal-tag" style="background:var(--blue-dim);color:var(--blue)">17:30 (saliendo)</span><div class="meal-ttl">Colación</div><ul class="meal-items"><li class="mi">1 Yogur alto en proteína (15–20g).</li><li class="mi">1 Plátano (días gym) o manzana.</li><li class="mi">12–15 almendras. Comer en el trayecto.</li></ul></div>
+  <div class="meal-card" style="border-top:3px solid var(--purple)"><span class="meal-tag" style="background:var(--purple-dim);color:var(--purple)">Post-entreno</span><div class="meal-ttl">Cena</div><ul class="meal-items"><li class="mi"><strong>Gym (~20:30)</strong> 150g pescado/pollo + ${cGym} + verduras.</li><li class="mi"><strong>Basket (~22:30)</strong> 1 lata atún o 120g pollo + ensalada ligera. Sin carbos.</li>${notaF}</ul></div>`;
+}
+
+/* ══ CONTROL ══ */
+function addWeightLog(){
+  const val=parseFloat(document.getElementById('weightInput').value);if(!val||val<50||val>150)return;
+  const date=todayStr(),idx=weights.findIndex(w=>w.date===date);
+  if(idx>=0)weights[idx].weight=val;else weights.push({date,weight:val});
+  save();document.getElementById('weightInput').value='';showFeedback(val);renderHistory();updateAll();
+  const ev=evaluar();if(ev&&!pautaPendiente){pautaPendiente=ev;save();renderPautaAlert('pautaAlertControl',ev);}else if(pautaPendiente){renderPautaAlert('pautaAlertControl',pautaPendiente);}updateEvalInfo();
+}
+function showFeedback(w){
+  const loss=(START_W-w).toFixed(1),card=document.getElementById('feedbackCard'),t=document.getElementById('feedbackTitle'),tx=document.getElementById('feedbackText');
+  card.style.display='block';
+  if(loss<0){card.style.cssText='display:block;background:var(--red-dim);border:1px solid rgba(220,38,38,.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;';t.style.color='var(--red)';t.textContent='⚠ Alerta nutricional';tx.textContent='Has subido de peso. Revisa el picoteo nocturno y aplica el protocolo anti-ansiedad.';}
+  else if(loss<1.5){card.style.cssText='display:block;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;';t.style.color='var(--amber)';t.textContent='◎ En progreso';tx.textContent=`Has bajado ${loss} kg. El sistema monitoreará tu ritmo y evaluará si se necesita ajuste.`;}
+  else{card.style.cssText='display:block;background:var(--green-dim);border:1px solid rgba(22,163,74,.25);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:12px;';t.style.color='var(--green)';t.textContent='✓ Excelente progreso';tx.textContent=`Has bajado ${loss} kg. El déficit funciona perfectamente. Mantén la estructura actual.`;}
+}
+function renderHistory(){
+  const tbody=document.getElementById('historyBody');tbody.innerHTML='';
+  [...weights].reverse().forEach((e,i,arr)=>{
+    let diff='<span style="color:var(--text-3)">—</span>';
+    if(i<arr.length-1){const d=(e.weight-arr[i+1].weight).toFixed(1);if(d>0)diff=`<span style="color:var(--red);font-weight:600">+${d} kg ↑</span>`;else if(d<0)diff=`<span style="color:var(--green);font-weight:600">${d} kg ↓</span>`;else diff=`<span style="color:var(--text-3)">sin cambio</span>`;}
+    const p=e.date.split('-'),dn=Math.ceil((new Date(e.date+'T12:00:00')-START_DATE)/86400000),wn=Math.ceil((dn+1)/7);
+    tbody.innerHTML+=`<tr><td class="h-date">${p[2]}/${p[1]}/${p[0]}</td><td class="h-weight">${e.weight} kg</td><td>${diff}</td><td style="font-family:var(--mono);font-size:11px;color:var(--text-3)">Sem ${wn}</td></tr>`;
+  });
+}
+function updateEvalInfo(){const wk=weekNum(),nxt=Math.ceil(wk/4)*4+1,el=document.getElementById('nextEvalInfo');if(pautaPendiente){el.textContent='Nueva pauta disponible — revísala arriba';el.style.color='var(--amber)';}else{el.textContent=`Semana ${wk} de 13 · Próxima evaluación automática: semana ${nxt}`;el.style.color='';}}
+
+/* ══ CUERPO ══ */
+function saveMedidas(){
+  const c=parseFloat(document.getElementById('inCintura').value),p=parseFloat(document.getElementById('inPecho').value),ca=parseFloat(document.getElementById('inCadera').value);
+  if(!c&&!p&&!ca){showToast('Ingresa al menos una medida');return;}
+  const date=todayStr(),idx=medidas.findIndex(m=>m.date===date);
+  const entry={date,cintura:c||null,pecho:p||null,cadera:ca||null};
+  if(idx>=0)medidas[idx]=entry;else medidas.push(entry);
+  save();['inCintura','inPecho','inCadera'].forEach(id=>{document.getElementById(id).value='';});renderCuerpo();showToast('Medidas guardadas');
+}
+function renderCuerpo(){renderMedidasChart();renderMedidasHistory();renderFotoGrid();}
+function renderMedidasChart(){
+  const ctx=document.getElementById('medidasChart');if(!ctx)return;
+  const sorted=[...medidas].sort((a,b)=>a.date.localeCompare(b.date));
+  const labels=sorted.map(m=>{const p=m.date.split('-');return`${p[2]}/${p[1]}`;});
+  if(medidasChartInst)medidasChartInst.destroy();
+  medidasChartInst=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Cintura',data:sorted.map(m=>m.cintura),borderColor:'#e11d48',backgroundColor:'rgba(225,29,72,.06)',borderWidth:2,tension:.4,pointRadius:4,spanGaps:true},{label:'Pecho',data:sorted.map(m=>m.pecho),borderColor:'#2563eb',backgroundColor:'rgba(37,99,235,.06)',borderWidth:2,tension:.4,pointRadius:4,spanGaps:true},{label:'Cadera',data:sorted.map(m=>m.cadera),borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.06)',borderWidth:2,tension:.4,pointRadius:4,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#94a3b8',font:{family:'Inter',size:11}}},x:{grid:{display:false},ticks:{color:'#94a3b8',font:{family:'Inter',size:11}}}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'rgba(0,0,0,.1)',borderWidth:1,titleFont:{family:'Inter',weight:'600',size:12},bodyFont:{family:'Inter',size:11}}}}});
+}
+function renderMedidasHistory(){
+  const el=document.getElementById('medidasBody');if(!el)return;el.innerHTML='';
+  [...medidas].sort((a,b)=>b.date.localeCompare(a.date)).forEach(m=>{const p=m.date.split('-');el.innerHTML+=`<div class="perim-row"><span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${p[2]}/${p[1]}/${p[0]}</span><span style="font-weight:700;color:var(--rose)">${m.cintura?m.cintura+' cm':'—'}</span><span style="font-weight:700;color:var(--blue)">${m.pecho?m.pecho+' cm':'—'}</span><span style="font-weight:700;color:var(--purple)">${m.cadera?m.cadera+' cm':'—'}</span></div>`;});
+  if(!medidas.length)el.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-3)">Sin medidas registradas aún</div>';
+}
+function renderFotoGrid(){
+  const grid=document.getElementById('fotoGrid');if(!grid)return;grid.innerHTML='';
+  const slots=[{label:'Sem 1 · Frontal',key:'s1f'},{label:'Sem 1 · Lateral',key:'s1l'},{label:'Sem 5 · Frontal',key:'s5f'},{label:'Sem 5 · Lateral',key:'s5l'},{label:'Sem 9 · Frontal',key:'s9f'},{label:'Sem 9 · Lateral',key:'s9l'},{label:'Sem 13 · Frontal',key:'s13f'},{label:'Sem 13 · Lateral',key:'s13l'}];
+  slots.forEach(slot=>{const foto=fotos.find(f=>f.key===slot.key);grid.innerHTML+=`<div class="foto-slot" onclick="document.getElementById('fi_${slot.key}').click()">${foto?`<img src="${foto.src}" alt="${slot.label}"><div class="foto-ov"><span style="font-size:11px;font-weight:600;color:#fff">${slot.label}<br><span style="font-weight:400;opacity:.7">Toca para cambiar</span></span></div>`:`<span class="foto-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span><span class="foto-slot-lbl">${slot.label}</span>`}<input type="file" accept="image/*" id="fi_${slot.key}" class="foto-inp" onchange="handleFoto(event,'${slot.key}')"></div>`;});
+}
+function handleFoto(e,key){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=ev=>{const idx=fotos.findIndex(f=>f.key===key);if(idx>=0)fotos[idx].src=ev.target.result;else fotos.push({key,src:ev.target.result});save();renderFotoGrid();showToast('Foto guardada');};reader.readAsDataURL(file);}
+let compareVisible=false;
+function toggleCompare(){
+  compareVisible=!compareVisible;const cv=document.getElementById('compareView');cv.style.display=compareVisible?'block':'none';if(!compareVisible)return;
+  const before=fotos.find(f=>f.key==='s1f'),after=fotos.find(f=>f.key!=='s1f'&&f.key!=='s1l');
+  const ci=document.getElementById('compareInner');
+  if(!before&&!after){ci.innerHTML='<div style="padding:40px;text-align:center;font-size:12px;color:var(--text-3)">Necesitas al menos 2 fotos guardadas para comparar</div>';return;}
+  ci.innerHTML=`<div class="compare-side">${before?`<img src="${before.src}"><span class="compare-tag">Semana 1</span>`:'<div style="display:flex;align-items:center;justify-content:center;height:200px;font-size:12px;color:var(--text-3)">Sin foto inicial</div>'}</div><div class="compare-side">${after?`<img src="${after.src}"><span class="compare-tag" style="right:8px;left:auto">Progreso</span>`:'<div style="display:flex;align-items:center;justify-content:center;height:200px;font-size:12px;color:var(--text-3)">Sin foto de progreso</div>'}</div>`;
+}
+
+/* ══ SUEÑO ══ */
+function setQuality(q){sleepQuality=q;['qBad','qOk','qGreat'].forEach(id=>document.getElementById(id).className='q-btn');const map={bad:'qBad',ok:'qOk',great:'qGreat'},cls={bad:'sel-bad',ok:'sel-ok',great:'sel-great'};document.getElementById(map[q]).classList.add(cls[q]);}
+function saveSleep(){
+  if(!sleepQuality){showToast('Selecciona cómo despertaste');return;}
+  const bed=document.getElementById('sleepBed').value,wake=document.getElementById('sleepWake').value;
+  const[bh,bm]=bed.split(':').map(Number),[wh,wm]=wake.split(':').map(Number);
+  let hrs=(wh*60+wm-(bh*60+bm))/60;if(hrs<0)hrs+=24;
+  const date=todayStr(),idx=sleepLogs.findIndex(s=>s.date===date);
+  const entry={date,bed,wake,hrs:+hrs.toFixed(1),quality:sleepQuality};
+  if(idx>=0)sleepLogs[idx]=entry;else sleepLogs.push(entry);
+  sleepQuality=null;['qBad','qOk','qGreat'].forEach(id=>document.getElementById(id).className='q-btn');
+  save();renderSueno();showToast(`${hrs.toFixed(1)} hrs registradas`);
+}
+function renderSueno(){renderSleepChart();renderSleepHistory();}
+function renderSleepChart(){
+  const ctx=document.getElementById('sleepChart');if(!ctx)return;
+  const last14=[...sleepLogs].sort((a,b)=>a.date.localeCompare(b.date)).slice(-14);
+  const labels=last14.map(s=>{const p=s.date.split('-');return`${p[2]}/${p[1]}`;});
+  const wData=last14.map(s=>{const w=weights.find(x=>x.date===s.date);return w?w.weight:null;});
+  if(sleepChartInst)sleepChartInst.destroy();
+  sleepChartInst=new Chart(ctx,{type:'bar',data:{labels,datasets:[{label:'Hrs sueño',data:last14.map(s=>s.hrs),backgroundColor:'rgba(37,99,235,.15)',borderColor:'#2563eb',borderWidth:1.5,borderRadius:4,yAxisID:'y'},{label:'Peso',data:wData,type:'line',borderColor:'rgba(14,165,160,.7)',borderWidth:2,pointRadius:3,tension:.4,yAxisID:'y1',spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:12,grid:{color:'rgba(0,0,0,.04)'},ticks:{color:'#94a3b8',font:{family:'Inter',size:11}},title:{display:true,text:'Hrs',color:'#94a3b8',font:{family:'Inter',size:10}}},y1:{position:'right',grid:{display:false},ticks:{color:'#94a3b8',font:{family:'Inter',size:11}},title:{display:true,text:'kg',color:'#94a3b8',font:{family:'Inter',size:10}}}},plugins:{legend:{display:false},tooltip:{backgroundColor:'#fff',borderColor:'rgba(0,0,0,.1)',borderWidth:1,titleFont:{family:'Inter',weight:'600',size:12},bodyFont:{family:'Inter',size:11}}}}});
+}
+function renderSleepHistory(){
+  const el=document.getElementById('sleepHistory');if(!el)return;el.innerHTML='';
+  [...sleepLogs].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14).forEach(s=>{
+    const p=s.date.split('-');const qMap={bad:'Agotado',ok:'Bien',great:'Listo'};const cMap={bad:'sq-bad',ok:'sq-ok',great:'sq-great'};
+    const hrsColor=s.hrs>=7.5?'var(--green)':s.hrs>=6?'var(--amber)':'var(--red)';
+    el.innerHTML+=`<div class="sleep-row"><span class="sleep-date-txt">${p[2]}/${p[1]}/${p[0]}</span><span class="sleep-hrs-txt" style="color:${hrsColor}">${s.hrs} hrs</span><span style="font-family:var(--mono);font-size:11px;color:var(--text-2)">${s.bed} → ${s.wake}</span><span class="sleep-q-badge ${cMap[s.quality]||''}">${qMap[s.quality]||'—'}</span></div>`;
+  });
+  if(!sleepLogs.length)el.innerHTML='<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-3)">Sin registros de sueño aún</div>';
+}
+
+/* ══ COMPRAS ══ */
+const SHOP_ITEMS={
+  1:[{cat:'Proteínas',color:'#ea580c',items:[{n:'Pechuga de pollo',u:'1.5 kg'},{n:'Lomo liso o posta rosada',u:'500g'},{n:'Atún al agua (latas)',u:'6 latas'},{n:'Merluza o reineta',u:'500g'},{n:'Salmón',u:'250g'},{n:'Huevos',u:'14 unidades'},{n:'Yogur alto en proteína',u:'7 unidades'}]},{cat:'Verduras',color:'var(--green)',items:[{n:'Lechuga o espinaca',u:'2 bolsas'},{n:'Pepino ensalada',u:'4 unidades'},{n:'Brócoli',u:'1 kg'},{n:'Zapallo italiano',u:'4 unidades'},{n:'Tomate',u:'6 unidades'},{n:'Pepinillos en vinagre',u:'1 frasco — salvavidas'},{n:'Zanahoria bastones',u:'500g — salvavidas'}]},{cat:'Carbohidratos',color:'var(--blue)',items:[{n:'Arroz integral',u:'1 kg'},{n:'Quinoa',u:'500g'},{n:'Fideos integrales',u:'500g'},{n:'Pan integral de molde',u:'1 paquete'},{n:'Avena tradicional',u:'500g'},{n:'Papas',u:'1 kg'},{n:'Plátanos',u:'7 unidades'}]},{cat:'Grasas saludables',color:'var(--amber)',items:[{n:'Paltas',u:'4 unidades'},{n:'Almendras',u:'200g'},{n:'Aceite de oliva',u:'1 botella'},{n:'Limones',u:'6 unidades'}]},{cat:'Salvavidas anti-ansiedad',color:'var(--purple)',items:[{n:'Jalea sin azúcar (sobres)',u:'4 sobres'},{n:'Agua mineral con gas',u:'6 botellas'},{n:'Cabritas grano natural',u:'1 paquete'},{n:'Arándanos congelados',u:'500g'},{n:'Frambuesas congeladas',u:'500g'},{n:'Manzanas',u:'6 unidades'}]}],
+  2:[{cat:'Proteínas',color:'#ea580c',items:[{n:'Pechuga de pollo',u:'1.5 kg'},{n:'Atún al agua',u:'8 latas'},{n:'Merluza',u:'700g'},{n:'Huevos',u:'14 unidades'},{n:'Yogur alto proteína',u:'7 unidades'}]},{cat:'Verduras (porción mayor)',color:'var(--green)',items:[{n:'Espinaca',u:'2 bolsas'},{n:'Brócoli',u:'1.5 kg'},{n:'Zapallo italiano',u:'5 unidades'},{n:'Pepinillos en vinagre',u:'1 frasco grande'},{n:'Zanahoria',u:'700g'}]},{cat:'Carbohidratos (reducidos)',color:'var(--blue)',items:[{n:'Arroz integral',u:'700g'},{n:'Quinoa',u:'500g'},{n:'Avena',u:'500g'},{n:'Plátanos (solo días gym)',u:'5 unidades'},{n:'Manzanas',u:'7 unidades'}]},{cat:'Grasas',color:'var(--amber)',items:[{n:'Paltas',u:'4 unidades'},{n:'Almendras',u:'150g'},{n:'Aceite de oliva',u:'1 botella'}]},{cat:'Salvavidas',color:'var(--purple)',items:[{n:'Jalea sin azúcar',u:'6 sobres'},{n:'Agua con gas',u:'8 botellas'},{n:'Frutos rojos congelados',u:'1 kg'}]}],
+  3:[{cat:'Proteínas (máxima prioridad)',color:'#ea580c',items:[{n:'Pechuga de pollo',u:'2 kg'},{n:'Atún al agua',u:'10 latas'},{n:'Merluza/reineta',u:'1 kg'},{n:'Huevos',u:'18 unidades'},{n:'Yogur proteína (mín 20g)',u:'7 unidades'},{n:'Queso cottage',u:'500g'}]},{cat:'Verduras (plato principal)',color:'var(--green)',items:[{n:'Brócoli',u:'2 kg'},{n:'Espinaca',u:'3 bolsas'},{n:'Zapallo italiano',u:'6 unidades'},{n:'Pepinillos en vinagre',u:'2 frascos'}]},{cat:'Carbohidratos (mínimos)',color:'var(--blue)',items:[{n:'Arroz integral',u:'500g — solo almuerzo'},{n:'Quinoa',u:'300g'},{n:'Avena',u:'500g'},{n:'Plátanos solo pre-gym',u:'4 unidades'},{n:'Manzanas',u:'7 unidades'}]},{cat:'Grasas',color:'var(--amber)',items:[{n:'Paltas',u:'4 unidades'},{n:'Almendras',u:'100g'},{n:'Aceite de oliva',u:'1 botella'}]},{cat:'Salvavidas (esenciales)',color:'var(--purple)',items:[{n:'Jalea sin azúcar',u:'8 sobres'},{n:'Agua con gas',u:'12 botellas'},{n:'Frutos rojos congelados',u:'1.5 kg'}]}]
+};
+function setShopPhase(ph,btn){shopPhase=ph;document.querySelectorAll('.shop-phase-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');generateShopList();}
+function generateShopList(){
+  const container=document.getElementById('shopListContainer');if(!container)return;container.innerHTML='';
+  (SHOP_ITEMS[shopPhase]||SHOP_ITEMS[1]).forEach(cat=>{
+    const catItems=cat.items.map(item=>{const key=`${shopPhase}_${item.n}`;const chk=shopChecked[key];return`<div class="shop-item${chk?' checked':''}" onclick="toggleShopItem('${key}',this)"><div class="shop-cb">${chk?'<svg width="9" height="9" viewBox="0 0 9 9"><polyline points="1,4.5 3.5,7 8,1" stroke="white" stroke-width="2" fill="none"/></svg>':''}</div><span class="shop-item-name">${item.n}</span><span class="shop-item-note">${item.u}</span></div>`;}).join('');
+    container.innerHTML+=`<div class="shop-category"><div class="shop-cat-hdr"><span class="shop-cat-ttl" style="color:${cat.color}">${cat.cat}</span><span class="shop-cat-cnt">${cat.items.length} ítems</span></div>${catItems}</div>`;
+  });
+}
+function toggleShopItem(key,row){shopChecked[key]=!shopChecked[key];save();row.classList.toggle('checked',shopChecked[key]);const cb=row.querySelector('.shop-cb');cb.innerHTML=shopChecked[key]?'<svg width="9" height="9" viewBox="0 0 9 9"><polyline points="1,4.5 3.5,7 8,1" stroke="white" stroke-width="2" fill="none"/></svg>':'';}
+function clearShopChecked(){const prefix=shopPhase+'_';Object.keys(shopChecked).forEach(k=>{if(k.startsWith(prefix))delete shopChecked[k];});save();generateShopList();}
+function copyShopList(){const items=SHOP_ITEMS[shopPhase]||SHOP_ITEMS[1];let text=`Lista Supermercado — Fase ${shopPhase}\n`;items.forEach(cat=>{text+=`\n${cat.cat}\n`;cat.items.forEach(i=>{text+=`  [ ] ${i.n} (${i.u})\n`;});});navigator.clipboard.writeText(text).then(()=>showToast('Lista copiada al portapapeles')).catch(()=>showToast('No se pudo copiar'));}
+
+/* ══ NOTIFICACIONES ══ */
+function renderAlertas(){
+  Object.entries(notifSettings).forEach(([k,v])=>{const t=document.getElementById('tog'+k);if(t)t.classList.toggle('on',v);});
+  const perm=Notification.permission,el=document.getElementById('notifPermStatus');
+  if(perm==='granted'){el.textContent='✓ Permisos activos. Las alertas del navegador están habilitadas.';el.style.color='var(--green)';}
+  else if(perm==='denied'){el.textContent='✗ Permisos bloqueados. Habilítalos en la configuración del navegador.';el.style.color='var(--red)';}
+  else{el.textContent='Las notificaciones no están habilitadas. Actívalas para recibir recordatorios.';el.style.color='var(--text-2)';}
+}
+function toggleNotif(key){notifSettings[key]=!notifSettings[key];save();const id='tog'+key;document.getElementById(id).classList.toggle('on',notifSettings[key]);if(notifSettings[key]){setupNotif(key);showToast('Alerta activada');}else{clearNotif(key);showToast('Alerta desactivada');}}
+function requestNotifPerm(){Notification.requestPermission().then(p=>{renderAlertas();if(p==='granted')showToast('✓ Permisos de notificación activados');});}
+function setupNotif(key){
+  if(Notification.permission!=='granted'){Notification.requestPermission().then(p=>{if(p==='granted')setupNotif(key);});return;}
+  clearNotif(key);
+  if(key==='water')notifIntervals[key]=setInterval(()=>{const h=new Date().getHours();if(h>=8&&h<18)new Notification('NutriTracker',{body:'¿Tomaste agua? Meta: 2.500 ml diarios.'});},90*60*1000);
+  if(key==='snack')notifIntervals[key]=setInterval(()=>{const n=new Date();if(n.getHours()===17&&n.getMinutes()<5)new Notification('NutriTracker',{body:'Prepara tu colación antes de salir: Yogur + fruta + almendras.'});},5*60*1000);
+  if(key==='night')notifIntervals[key]=setInterval(()=>{const n=new Date();if(n.getHours()===23&&n.getMinutes()>=28&&n.getMinutes()<33)new Notification('NutriTracker',{body:'Hora de apagar pantallas. Protege tu sueño y tu déficit calórico.'});},5*60*1000);
+  if(key==='weight')notifIntervals[key]=setInterval(()=>{const n=new Date();if(n.getDay()===1&&n.getHours()===7&&n.getMinutes()>=43&&n.getMinutes()<48)new Notification('NutriTracker',{body:'Lunes: pésate en ayunas y registra tu peso en la app.'});},5*60*1000);
+}
+function clearNotif(key){if(notifIntervals[key]){clearInterval(notifIntervals[key]);delete notifIntervals[key];}}
+function initNotifs(){Object.entries(notifSettings).forEach(([k,v])=>{if(v)setupNotif(k);});}
+
+/* ══ PAUTAS ══ */
+function renderPautasPage(){
+  const c=document.getElementById('pautasHistoryList');c.innerHTML='';
+  const cMap={1:'var(--accent)',2:'var(--amber)',3:'var(--red)'},iMap={1:'①',2:'②',3:'③'};
+  FASES.forEach(fase=>{
+    const acp=pautasAceptadas.find(p=>p.faseId===fase.id),isCurr=acp&&activePauta().faseId===fase.id;
+    const color=cMap[fase.id],status=acp?(isCurr?'● Activa':'✓ Completada'):'○ Próxima';
+    c.innerHTML+=`<div class="phase-card${isCurr?' active-phase':''}">
+      <div class="phase-card-hdr"><div style="display:flex;align-items:flex-start;gap:10px;flex:1"><span style="font-size:22px">${iMap[fase.id]}</span><div class="phase-info"><div class="phase-status" style="color:${acp?(isCurr?color:'var(--text-3)'):'var(--text-3)'}">${status}</div><div class="phase-name">${fase.nombre}</div><div class="phase-rango">${fase.rango}</div><div style="font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.55">${fase.descripcion}</div></div></div><div style="text-align:right;flex-shrink:0"><div class="phase-kcal-big" style="color:${color}">${acp?acp.kcal:fase.kcal}</div><div class="phase-kcal-lbl">kcal/día<br>−${fase.deficit} kcal</div></div></div>
+      ${acp?`<div class="phase-macros-row"><div class="pm-box"><div class="pm-box-lbl">Proteína</div><div class="pm-box-val" style="color:#ea580c">${acp.prot}g</div></div><div class="pm-box"><div class="pm-box-lbl">Carbos</div><div class="pm-box-val" style="color:var(--blue)">${acp.carb}g</div></div><div class="pm-box"><div class="pm-box-lbl">Grasa</div><div class="pm-box-val" style="color:var(--amber)">${acp.grasa}g</div></div>${acp.fechaActivacion?`<div class="pm-box"><div class="pm-box-lbl">Activada</div><div class="pm-box-val" style="font-size:13px;color:var(--text-2)">${acp.fechaActivacion.split('-').reverse().join('/')}</div></div>`:''}</div><div class="phase-changes">${fase.cambios.map(ch=>`<div class="pci"><span class="pci-arr">→</span>${ch}</div>`).join('')}</div>`:`<div class="phase-upcoming">Se activa en la semana ${fase.semanas[0]} o antes si el ritmo lo requiere.</div>`}
+    </div>`;
+  });
+}
+
+/* ══ RUTINA ══ */
+// Rutinas base (se pueden sobreescribir con editorRoutines guardadas)
+const BASE_ROUTINES={
+  lunes:[
+    {time:'07:30',action:'Desayuno',desc:'Carga de motor. Opción A o B de la minuta.',type:'food'},
+    {time:'08:30',action:'Oficina',desc:'Ingreso. Botella de 1L en el escritorio desde el inicio.',type:'default'},
+    {time:'13:30',action:'Almuerzo',desc:'Carga principal: carbos complejos y proteínas.',type:'food'},
+    {time:'17:30',action:'Colación + salida',desc:'Yogur + plátano en el trayecto (llega a casa 18:15).',type:'food'},
+    {time:'18:15',action:'Llegada a casa',desc:'Cambio de modo. Preparar kit para el partido.',type:'default'},
+    {time:'18:30',action:'Proyecto (2 hrs)',desc:'Bloque de diseño. Protocolo anti-ansiedad si hay estrés.',type:'work'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión activa post-gym. Hidratación al volver.',type:'pet'},
+    {time:'20:50',action:'Básquetbol',desc:'Partido 1 hora. Hidratación constante. Sin comer en el intervalo.',type:'sport'},
+    {time:'22:30',action:'Cena rápida',desc:'Atún + ensalada ligera. Sin carbos densos.',type:'food'},
+    {time:'23:30',action:'Dormir',desc:'Meta: 7.5 hrs. Aquí ocurre la quema de grasa y la recuperación muscular.',type:'sleep'}
+  ],
+  martes:[
+    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'08:30',action:'Oficina',desc:'500 ml de agua en la primera hora.',type:'default'},
+    {time:'13:30',action:'Almuerzo',desc:'Proteína + carbo complejo + ensalada.',type:'food'},
+    {time:'17:30',action:'Colación + salida',desc:'Pre-gym. Yogur + fruta en el trayecto.',type:'food'},
+    {time:'18:15',action:'Llegada a casa',desc:'Cambio de ropa. Hidratación antes de salir.',type:'default'},
+    {time:'19:00',action:'Gym Funcional',desc:'Entrenamiento de fuerza por estaciones. 1 hora.',type:'sport'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión activa post-gym.',type:'pet'},
+    {time:'20:30',action:'Cena post-gym',desc:'Pollo/Pescado + carbo según fase activa.',type:'food'},
+    {time:'21:00',action:'Proyecto (2.5 hrs)',desc:'Diseño con la mente despejada post-entreno.',type:'work'},
+    {time:'23:30',action:'Dormir',desc:'Apagar pantallas 30 min antes. Meta: antes de medianoche.',type:'sleep'}
+  ],
+  miercoles:[
+    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'08:30',action:'Oficina',desc:'Hidratación constante durante la jornada.',type:'default'},
+    {time:'13:30',action:'Almuerzo',desc:'Carga principal.',type:'food'},
+    {time:'17:30',action:'Colación + salida',desc:'Yogur + fruta.',type:'food'},
+    {time:'18:15',action:'Llegada a casa',desc:'Transición.',type:'default'},
+    {time:'18:30',action:'Proyecto (2 hrs)',desc:'Bloque de diseño antes del basket.',type:'work'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión antes del partido.',type:'pet'},
+    {time:'21:00',action:'Básquetbol',desc:'Partido 1 hora. Solo agua.',type:'sport'},
+    {time:'22:30',action:'Cena rápida',desc:'Proteína ligera + ensalada. Sin carbos.',type:'food'},
+    {time:'23:30',action:'Dormir',desc:'Recuperación general.',type:'sleep'}
+  ],
+  jueves:[
+    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'08:30',action:'Oficina',desc:'Ingreso al trabajo.',type:'default'},
+    {time:'13:30',action:'Almuerzo',desc:'Proteína + carbos complejos.',type:'food'},
+    {time:'17:30',action:'Colación + salida',desc:'Pre-gym. Plátano + yogur.',type:'food'},
+    {time:'18:15',action:'Llegada a casa',desc:'Preparación para el gym.',type:'default'},
+    {time:'19:00',action:'Gym Funcional',desc:'Fuerza + estaciones. 1.5 hrs.',type:'sport'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión post-gym.',type:'pet'},
+    {time:'20:30',action:'Cena post-gym',desc:'Pollo/Pescado + carbo según fase activa.',type:'food'},
+    {time:'21:30',action:'Proyecto (2 hrs)',desc:'Diseño. Pantallas off a las 23:30.',type:'work'},
+    {time:'00:00',action:'Dormir',desc:'Fin de jornada.',type:'sleep'}
+  ],
+  viernes:[
+    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'08:30',action:'Oficina',desc:'Último día de semana laboral.',type:'default'},
+    {time:'13:30',action:'Almuerzo',desc:'Almuerzo estándar.',type:'food'},
+    {time:'17:30',action:'Colación + salida',desc:'Combustible para la tarde en casa.',type:'food'},
+    {time:'18:15',action:'Llegada a casa',desc:'Transición.',type:'default'},
+    {time:'18:30',action:'Proyecto (3 hrs)',desc:'Bloque fuerte para liberar el fin de semana. Protocolo anti-ansiedad activo.',type:'work'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión entre proyecto y cena.',type:'pet'},
+    {time:'21:30',action:'Cena',desc:'Alta en proteínas. Libre de carbos densos.',type:'food'},
+    {time:'00:00',action:'Dormir',desc:'No trasnochar. Descanso muscular y mental.',type:'sleep'}
+  ],
+  sabado:[
+    {time:'09:00',action:'Desayuno',desc:'Pre-entreno. Comer 1.5 hrs antes del gym.',type:'food'},
+    {time:'11:00',action:'Gym Funcional',desc:'Último entrenamiento de la semana. 1 hora.',type:'sport'},
+    {time:'12:10',action:'Paseo con Clarita',desc:'30 minutos de paseo post-gym. Sin apuro. Buena dosis de vitamina D.',type:'pet'},
+    {time:'13:30',action:'Almuerzo libre',desc:'Recarga estratégica: asado magro, mariscal o comida familiar. Disfrutar sin culpa.',type:'food'},
+    {time:'14:30',action:'Proyecto (5 hrs)',desc:'Bloque de diseño. Frontera visual: agua en el escritorio, snacks solo en la cocina.',type:'work'},
+    {time:'19:30',action:'Cena',desc:'Ajustar según almuerzo. Si fue abundante: solo proteína + verduras.',type:'food'}
+  ],
+  domingo:[
+    {time:'08:30',action:'Desayuno',desc:'Alta en proteína. Motor para el bloque de trabajo.',type:'food'},
+    {time:'09:00',action:'Proyecto AM (5 hrs)',desc:'Diseño con la mente fresca. Café antes de las 10:30. Agua mineral al lado.',type:'work'},
+    {time:'11:30',action:'Infusión / Break',desc:'Pausa 5 min. Té de menta o chai — "falso llenado" anti-ansiedad.',type:'default'},
+    {time:'14:00',action:'Almuerzo',desc:'Comida libre estratégica como recompensa al terminar el bloque.',type:'food'},
+    {time:'14:40',action:'Paseo con Clarita',desc:'30 minutos de paseo post-almuerzo. Digestión activa y desconexión dominical.',type:'pet'},
+    {time:'Tarde',action:'Meal Prep',desc:'Preparar colaciones para la semana: pepinillos, jalea, bastones de verdura.',type:'default'}
+  ]
+};
+
+// Cargar rutinas: primero las guardadas por el usuario, si no las base
+let editorRoutines = JSON.parse(localStorage.getItem('nt_routines')) || null;
+let routines = editorRoutines ? { ...BASE_ROUTINES, ...editorRoutines } : { ...BASE_ROUTINES };
+
+function saveRoutines() {
+  localStorage.setItem('nt_routines', JSON.stringify(routines));
+}
+
+// Colores y labels de tipo para el editor
+const TYPE_COLORS = {
+  food:'var(--accent)',sport:'var(--amber)',work:'var(--purple)',
+  sleep:'var(--blue)',default:'var(--text-3)',pet:'var(--green)'
+};
+const TYPE_LABELS = {
+  food:'Comida',sport:'Deporte',work:'Trabajo',
+  sleep:'Sueño',default:'General',pet:'Mascota'
+};
+
+function loadDay(day,btn){
+  if(btn){document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+  const tl=document.getElementById('timeline');tl.innerHTML='';
+  (routines[day]||BASE_ROUTINES[day]||[]).forEach(item=>{
+    const dotClass = item.type === 'pet' ? 'tl-dot-food' : `tl-dot-${item.type}`;
+    const color = item.type === 'pet' ? 'var(--green)' : (TYPE_COLORS[item.type]||'var(--text-2)');
+    tl.innerHTML+=`<div class="tl-item"><div class="tl-dot ${dotClass}" style="${item.type==='pet'?'background:var(--green);box-shadow:0 0 0 1px var(--green)':''}"></div><div class="tl-content"><div class="tl-time">${item.time}</div><div class="tl-action" style="color:${color}">${item.action}</div><div class="tl-desc">${item.desc}</div></div></div>`;
+  });
+}
+
+/* ══ EDITOR LOGIC ══ */
+let editorCurrentDay = 'lunes';
+let editorItems = [];
+
+function editorLoadDay(day, btn) {
+  editorCurrentDay = day;
+  document.querySelectorAll('.editor-day-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // Deep copy of current day items
+  editorItems = JSON.parse(JSON.stringify(routines[day] || BASE_ROUTINES[day] || []));
+  renderEditorList();
+  renderEditorPreview();
+  document.getElementById('editorPreviewDayLabel').textContent = day.charAt(0).toUpperCase() + day.slice(1);
+}
+
+function renderEditorList() {
+  const container = document.getElementById('editorList');
+  if (!container) return;
+  container.innerHTML = '';
+  editorItems.forEach((item, idx) => {
+    const dotColor = item.type === 'pet' ? 'var(--green)' : (TYPE_COLORS[item.type] || 'var(--text-3)');
+    container.innerHTML += `
+      <div class="editor-item" id="ei-${idx}">
+        <div class="editor-drag-handle" title="Arrastrar para reordenar">⠿</div>
+        <div class="editor-type-dot" style="background:${dotColor}"></div>
+        <div class="editor-fields">
+          <input class="editor-inp" type="text" value="${escHtml(item.time)}" placeholder="HH:MM"
+            onchange="editorUpdateItem(${idx},'time',this.value)" style="font-family:var(--mono)">
+          <input class="editor-inp" type="text" value="${escHtml(item.action)}" placeholder="Nombre del bloque"
+            onchange="editorUpdateItem(${idx},'action',this.value)">
+          <div class="editor-fields-row2">
+            <input class="editor-inp" type="text" value="${escHtml(item.desc)}" placeholder="Descripción (opcional)"
+              onchange="editorUpdateItem(${idx},'desc',this.value)">
+            <select class="editor-select" onchange="editorUpdateItem(${idx},'type',this.value)">
+              ${Object.entries(TYPE_LABELS).map(([k,v])=>`<option value="${k}" ${item.type===k?'selected':''}>${v}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <button class="editor-del-btn" onclick="editorDeleteItem(${idx})" title="Eliminar bloque">✕</button>
+      </div>`;
+  });
+  initEditorDragDrop();
+}
+
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function editorUpdateItem(idx, field, value) {
+  if (editorItems[idx]) {
+    editorItems[idx][field] = value;
+    // Update dot color live
+    const dotEl = document.querySelector(`#ei-${idx} .editor-type-dot`);
+    if (dotEl && field === 'type') dotEl.style.background = TYPE_COLORS[value] || 'var(--text-3)';
+    renderEditorPreview();
+  }
+}
+
+function editorDeleteItem(idx) {
+  editorItems.splice(idx, 1);
+  renderEditorList();
+  renderEditorPreview();
+  showToast('Bloque eliminado');
+}
+
+function editorAddItem() {
+  editorItems.push({ time: '', action: 'Nuevo bloque', desc: '', type: 'default' });
+  renderEditorList();
+  renderEditorPreview();
+  // Scroll to last item
+  setTimeout(() => {
+    const list = document.getElementById('editorList');
+    if (list) list.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+function editorSaveDay() {
+  routines[editorCurrentDay] = JSON.parse(JSON.stringify(editorItems));
+  saveRoutines();
+  // Also refresh the Rutinas view if it was last active
+  const tl = document.getElementById('timeline');
+  if (tl) loadDay(editorCurrentDay, null);
+  showToast('✓ Rutina del ' + editorCurrentDay + ' guardada');
+  renderEditorPreview();
+}
+
+function editorResetDay() {
+  if (!confirm(`¿Restaurar el ${editorCurrentDay} a la rutina original? Perderás tus cambios guardados para este día.`)) return;
+  delete routines[editorCurrentDay];
+  // Rebuild routines from base + remaining saved
+  const saved = JSON.parse(localStorage.getItem('nt_routines')) || {};
+  delete saved[editorCurrentDay];
+  if (Object.keys(saved).length > 0) localStorage.setItem('nt_routines', JSON.stringify(saved));
+  else localStorage.removeItem('nt_routines');
+  routines = { ...BASE_ROUTINES, ...saved };
+  editorItems = JSON.parse(JSON.stringify(BASE_ROUTINES[editorCurrentDay] || []));
+  renderEditorList();
+  renderEditorPreview();
+  showToast('↺ Rutina restaurada al original');
+}
+
+function renderEditorPreview() {
+  const tl = document.getElementById('editorPreview');
+  if (!tl) return;
+  tl.innerHTML = '';
+  editorItems.forEach(item => {
+    const color = item.type === 'pet' ? 'var(--green)' : (TYPE_COLORS[item.type] || 'var(--text-2)');
+    const dotClass = item.type === 'pet' ? 'tl-dot-food' : `tl-dot-${item.type}`;
+    tl.innerHTML += `<div class="tl-item" style="animation:none"><div class="tl-dot ${dotClass}" style="${item.type==='pet'?'background:var(--green);box-shadow:0 0 0 1px var(--green)':''}"></div><div class="tl-content"><div class="tl-time">${item.time||'—'}</div><div class="tl-action" style="color:${color}">${item.action||'Sin nombre'}</div><div class="tl-desc">${item.desc||''}</div></div></div>`;
+  });
+  if (!editorItems.length) tl.innerHTML = '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-3)">Sin bloques. Agrega uno arriba.</div>';
+}
+
+/* ══ DRAG & DROP for editor ══ */
+function initEditorDragDrop() {
+  const container = document.getElementById('editorList');
+  if (!container) return;
+  let dragEl = null, dragIdx = -1, overIdx = -1;
+
+  container.querySelectorAll('.editor-item').forEach((el, idx) => {
+    const handle = el.querySelector('.editor-drag-handle');
+    handle.addEventListener('mousedown', (e) => {
+      dragEl = el;
+      dragIdx = idx;
+      el.style.opacity = '0.55';
+      el.style.transform = 'scale(0.98)';
+      e.preventDefault();
+    });
+  });
+
+  document.addEventListener('mousemove', onDragMove);
+  document.addEventListener('mouseup', onDragEnd);
+
+  function onDragMove(e) {
+    if (!dragEl) return;
+    const items = [...container.querySelectorAll('.editor-item')];
+    items.forEach((el, i) => {
+      const rect = el.getBoundingClientRect();
+      const mid = rect.top + rect.height / 2;
+      if (e.clientY < mid && i !== dragIdx) {
+        overIdx = i;
+        items.forEach(x => x.style.borderTop = '');
+        if (i !== dragIdx) el.style.borderTop = '2px solid var(--accent)';
+      }
+    });
+  }
+
+  function onDragEnd() {
+    if (!dragEl) return;
+    dragEl.style.opacity = '';
+    dragEl.style.transform = '';
+    container.querySelectorAll('.editor-item').forEach(x => x.style.borderTop = '');
+    if (overIdx >= 0 && overIdx !== dragIdx) {
+      const moved = editorItems.splice(dragIdx, 1)[0];
+      editorItems.splice(overIdx, 0, moved);
+      renderEditorList();
+      renderEditorPreview();
+    }
+    dragEl = null; dragIdx = -1; overIdx = -1;
+    document.removeEventListener('mousemove', onDragMove);
+    document.removeEventListener('mouseup', onDragEnd);
+  }
+}
+
+/* ══ INIT ══ */
+window.addEventListener('DOMContentLoaded',()=>{
+  updateAll();renderHistory();renderWater();renderMinuta();
+  const dayMap=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  const todayD=dayMap[new Date().getDay()];
+  const btns=document.querySelectorAll('.day-btn'),todayI=dayMap.indexOf(todayD);
+  if(btns[todayI])btns[todayI].classList.add('active');
+  loadDay(todayD);
+  if(pautaPendiente)renderPautaAlert('pautaAlertDash',pautaPendiente);
+  updateEvalInfo();initNotifs();generateShopList();
+  // Pre-load editor with today's day
+  const editorDayMap=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+  editorCurrentDay = editorDayMap[new Date().getDay()];
+  const edBtns = document.querySelectorAll('.editor-day-btn');
+  const edIdx = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'].indexOf(editorCurrentDay);
+  if(edBtns[edIdx])edBtns[edIdx].classList.add('active');
+  editorItems = JSON.parse(JSON.stringify(routines[editorCurrentDay]||BASE_ROUTINES[editorCurrentDay]||[]));
+});
+</script>
+</body>
+</html>
