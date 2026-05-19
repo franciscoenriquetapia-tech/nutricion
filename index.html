@@ -216,18 +216,37 @@ input, select { font-family:inherit }
    No sidebar, full-width, bottom nav
 ══════════════════════════════════════════ */
 @media (max-width: 767px) {
-  html, body { height: 100%; overflow: hidden }
+  html, body {
+    height: 100%;
+    /* NO overflow:hidden on body — let the nav sit fixed */
+    overflow: hidden;
+  }
   .sidebar { display: none !important }
-  .app-shell { min-height: 0; flex-direction: column; flex: 1; height: calc(100vh - var(--top-h)); overflow: hidden; }
+
+  .app-shell {
+    min-height: 0;
+    flex-direction: column;
+    flex: 1;
+    /* Full viewport minus topbar, with safe area support */
+    height: calc(100dvh - var(--top-h));
+    overflow: hidden;
+  }
+
   .content-area {
-    flex: 1; overflow-y: auto; overflow-x: hidden;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 20px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
+    /* Bottom padding = nav height + safe area + extra breathing room */
+    padding: 20px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 32px);
     max-width: 100%;
+    /* Ensure content can scroll past the fixed nav */
+    box-sizing: border-box;
   }
   .content-area::-webkit-scrollbar { display: none }
+
   .bottom-nav { display: flex !important }
-  .topbar { position: sticky }
+  .topbar { position: sticky; top: 0 }
 }
 
 /* ── BOTTOM NAV (mobile only) ── */
@@ -236,10 +255,13 @@ input, select { font-family:inherit }
   height: var(--nav-h);
   background: var(--surface);
   border-top: 1px solid var(--border);
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-  padding-bottom: env(safe-area-inset-bottom);
-  box-shadow: 0 -1px 0 var(--border), 0 -4px 20px rgba(15,23,42,.08);
-  /* 5 items fixed, no scroll */
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 300; /* above everything */
+  /* Include safe area so nav clears the home indicator on iPhone */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -1px 0 var(--border), 0 -6px 24px rgba(15,23,42,.10);
   overflow: visible;
 }
 .bn-main { display: flex; width: 100%; height: 100% }
@@ -279,13 +301,15 @@ input, select { font-family:inherit }
 /* More drawer (slides up from bottom) */
 .bn-drawer {
   display: none;
-  position: fixed; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); left: 0; right: 0;
+  position: fixed;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
+  left: 0; right: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
   border-radius: 20px 20px 0 0;
   box-shadow: 0 -8px 32px rgba(15,23,42,.15);
-  z-index: 199;
-  padding: 8px 0 12px;
+  z-index: 299;
+  padding: 8px 0 16px;
   animation: slideUp .22s cubic-bezier(.34,1.56,.64,1);
 }
 .bn-drawer.open { display: block }
@@ -848,11 +872,8 @@ input, select { font-family:inherit }
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
-/* Desktop: center of screen, not above nav */
 @media (min-width: 768px) {
-  .toast {
-    bottom: 28px;
-  }
+  .toast { bottom: 28px; }
 }
 
 .panic-float {
@@ -866,7 +887,10 @@ input, select { font-family:inherit }
 }
 .panic-float:hover { transform: scale(1.1); box-shadow: 0 4px 20px rgba(220,38,38,.32), 0 0 0 6px rgba(220,38,38,.08) }
 @media (max-width: 767px) {
-  .panic-float { bottom: calc(var(--nav-h) + 14px); right: 14px; width: 44px; height: 44px }
+  .panic-float {
+    bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px);
+    right: 14px; width: 44px; height: 44px;
+  }
 }
 
 /* ══ SVG ICON SYSTEM ══ */
