@@ -164,22 +164,15 @@ input, select { font-family:inherit }
 ══════════════════════════════════════════ */
 @media (max-width: 767px) {
   html, body { height: 100%; overflow: hidden }
-
   .sidebar { display: none !important }
-
-  .app-shell {
-    min-height: 0; flex-direction: column; flex: 1;
-    height: calc(100vh - var(--top-h)); overflow: hidden;
-  }
-
+  .app-shell { min-height: 0; flex-direction: column; flex: 1; height: calc(100vh - var(--top-h)); overflow: hidden; }
   .content-area {
     flex: 1; overflow-y: auto; overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 18px 14px calc(var(--nav-h) + 14px);
+    padding: 16px 14px calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
     max-width: 100%;
   }
   .content-area::-webkit-scrollbar { display: none }
-
   .bottom-nav { display: flex !important }
   .topbar { position: sticky }
 }
@@ -192,25 +185,161 @@ input, select { font-family:inherit }
   border-top: 1px solid var(--border);
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
   padding-bottom: env(safe-area-inset-bottom);
-  overflow-x: auto; scrollbar-width: none;
-  box-shadow: 0 -1px 0 var(--border), 0 -4px 16px rgba(15,23,42,.06);
+  box-shadow: 0 -1px 0 var(--border), 0 -4px 20px rgba(15,23,42,.08);
+  /* 5 items fixed, no scroll */
+  overflow: visible;
 }
-.bottom-nav::-webkit-scrollbar { display: none }
+.bn-main { display: flex; width: 100%; height: 100% }
 .bn-item {
-  flex-shrink: 0; min-width: 60px; flex: 1;
+  flex: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 3px; border: none; background: transparent;
-  cursor: pointer; padding: 0 6px; transition: all .18s; position: relative;
+  cursor: pointer; padding: 0 4px; transition: all .18s; position: relative;
+  min-width: 0;
 }
-.bn-icon { font-size: 19px; line-height: 1; opacity: .35; transition: all .2s }
-.bn-label { font-size: 9px; font-weight: 600; letter-spacing: .3px; color: var(--text-3); transition: color .2s }
-.bn-item.active .bn-icon { opacity: 1 }
+.bn-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: .38; transition: all .2s;
+}
+.bn-icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.bn-label { font-size: 9px; font-weight: 600; letter-spacing: .2px; color: var(--text-3); transition: color .2s; white-space: nowrap }
+.bn-item.active .bn-icon { opacity: 1; color: var(--accent) }
 .bn-item.active .bn-label { color: var(--accent) }
 .bn-item.active::before {
-  content: ''; position: absolute; top: 0; left: 22%; right: 22%;
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%;
   height: 2.5px; background: var(--accent); border-radius: 0 0 4px 4px;
-  box-shadow: 0 1px 6px var(--accent-glow);
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
+
+/* More button */
+.bn-more-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; border: none; background: transparent; cursor: pointer; padding: 0 4px; position: relative;
+}
+.bn-more-btn .bn-icon { opacity: .38 }
+.bn-more-btn.open .bn-icon { opacity: 1; color: var(--accent) }
+.bn-more-btn.open .bn-label { color: var(--accent) }
+.bn-more-btn .bn-label { font-size: 9px; font-weight: 600; color: var(--text-3); white-space: nowrap }
+
+/* More drawer (slides up from bottom) */
+.bn-drawer {
+  display: none;
+  position: fixed; bottom: calc(var(--nav-h) + env(safe-area-inset-bottom)); left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -8px 32px rgba(15,23,42,.15);
+  z-index: 199;
+  padding: 8px 0 12px;
+  animation: slideUp .22s cubic-bezier(.34,1.56,.64,1);
+}
+.bn-drawer.open { display: block }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
+.bn-drawer-handle { width: 36px; height: 4px; background: var(--border-mid); border-radius: 2px; margin: 0 auto 12px; }
+.bn-drawer-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 4px; padding: 0 12px;
+}
+.bn-drawer-item {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 6px; border-radius: var(--r-sm);
+  border: none; background: transparent; cursor: pointer; transition: all .15s;
+}
+.bn-drawer-item:hover, .bn-drawer-item.active { background: var(--accent-dim) }
+.bn-drawer-item .di-icon { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; opacity: .5 }
+.bn-drawer-item .di-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.bn-drawer-item.active .di-icon { opacity: 1; color: var(--accent) }
+.bn-drawer-item .di-label { font-size: 10px; font-weight: 600; color: var(--text-2); white-space: nowrap }
+.bn-drawer-item.active .di-label { color: var(--accent) }
+/* Backdrop */
+.bn-backdrop { display: none; position: fixed; inset: 0; z-index: 198; background: rgba(15,23,42,.2); backdrop-filter: blur(2px) }
+.bn-backdrop.open { display: block }
+
+/* ══════════════════════════════════════════
+   PERFIL CSS
+══════════════════════════════════════════ */
+.profile-avatar-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;
+}
+.profile-avatar {
+  width: 84px; height: 84px; border-radius: 50%;
+  background: var(--accent-dim); border: 3px solid var(--accent-glow);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; cursor: pointer; position: relative; transition: all .2s;
+}
+.profile-avatar:hover { border-color: var(--accent) }
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: none }
+.profile-avatar-icon { color: var(--text-3) }
+.profile-avatar-edit {
+  position: absolute; bottom: 0; right: 0;
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--accent); border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.profile-avatar-edit svg { width: 12px; height: 12px; stroke: #fff; fill: none; stroke-width: 2.5 }
+.profile-name { font-size: 20px; font-weight: 700; letter-spacing: -.4px; color: var(--text-1) }
+.profile-plan { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-glow); border-radius: 100px; padding: 3px 10px; margin-top: 2px }
+.profile-edit-btn {
+  width: 100%; padding: 11px; background: var(--layer); border: 1.5px solid var(--border-mid);
+  border-radius: var(--r-sm); font-size: 13px; font-weight: 600; color: var(--text-2);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all .15s; margin-bottom: 0;
+}
+.profile-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim) }
+.profile-section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+}
+.profile-section-label svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+.metric-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px }
+.metric-card { background: var(--layer); border-radius: var(--r-sm); padding: 12px 14px }
+.metric-label { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px }
+.metric-value { font-size: 22px; font-weight: 700; letter-spacing: -.5px; color: var(--text-1) }
+.metric-unit { font-size: 11px; color: var(--text-3); font-weight: 400 }
+.metric-sub { font-size: 11px; color: var(--text-2); margin-top: 2px }
+.bmi-bar { height: 6px; border-radius: 100px; background: var(--layer2); overflow: hidden; margin-top: 6px; position: relative }
+.bmi-fill { height: 100%; border-radius: 100px; transition: width .8s cubic-bezier(.34,1.56,.64,1) }
+.bmi-label-row { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-3); margin-top: 3px }
+.profile-stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px }
+.pstat { background: var(--layer); border-radius: var(--r-sm); padding: 11px 10px; text-align: center }
+.pstat-val { font-size: 18px; font-weight: 700; color: var(--text-1); margin-bottom: 2px }
+.pstat-label { font-size: 10px; color: var(--text-3); font-weight: 500 }
+.profile-notif-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border) }
+.profile-notif-row:last-child { border-bottom: none }
+.profile-notif-info { display: flex; align-items: center; gap: 10px }
+.profile-notif-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0 }
+.profile-notif-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.profile-notif-name { font-size: 13px; font-weight: 600; color: var(--text-1); margin-bottom: 1px }
+.profile-notif-desc { font-size: 11px; color: var(--text-2) }
+.profile-pref-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border) }
+.profile-pref-row:last-child { border-bottom: none }
+.profile-pref-label { font-size: 13px; font-weight: 500; color: var(--text-1) }
+.profile-select {
+  background: var(--layer); border: 1.5px solid var(--border-mid); border-radius: var(--r-sm);
+  padding: 6px 10px; font-size: 12px; font-family: var(--font); color: var(--text-1);
+  outline: none; cursor: pointer; transition: all .2s; max-width: 130px;
+}
+.profile-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim) }
+.profile-signout {
+  width: 100%; padding: 12px; background: transparent;
+  border: 1.5px solid var(--red-dim); border-radius: var(--r-sm);
+  color: var(--red); font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all .15s; margin-top: 4px;
+}
+.profile-signout:hover { background: var(--red-dim); border-color: rgba(220,38,38,.3) }
+/* Profile avatar in topbar */
+.topbar-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent-dim); border: 2px solid var(--accent-glow);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s; overflow: hidden; flex-shrink: 0;
+}
+.topbar-avatar:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim) }
+.topbar-avatar img { width: 100%; height: 100%; object-fit: cover; display: none }
+.topbar-avatar svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
 
 /* ══════════════════════════════════════════
    SECTIONS
@@ -679,6 +808,49 @@ input, select { font-family:inherit }
 ::-webkit-scrollbar-thumb { background: var(--border-mid); border-radius: 4px }
 
 /* ══════════════════════════════════════════
+   DARK MODE
+══════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:#0f1117;--surface:#1a1d27;--panel:#1a1d27;--layer:#222535;--layer2:#2a2e42;
+  --border:rgba(255,255,255,.07);--border-mid:rgba(255,255,255,.12);--border-strong:rgba(255,255,255,.20);
+  --accent:#0ea5a0;--accent-light:#17c3bd;--accent-dim:rgba(14,165,160,.18);--accent-glow:rgba(14,165,160,.28);
+  --purple:#9d6bfa;--purple-dim:rgba(157,107,250,.14);--purple-mid:rgba(157,107,250,.22);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.14);--red:#f87171;--red-dim:rgba(248,113,113,.14);
+  --amber:#fbbf24;--amber-dim:rgba(251,191,36,.14);--blue:#60a5fa;--blue-dim:rgba(96,165,250,.14);
+  --rose:#fb7185;--rose-dim:rgba(251,113,133,.14);--text-1:#f0f4ff;--text-2:#8b93b0;--text-3:#4a5068;
+}
+[data-theme="dark"] .topbar,[data-theme="dark"] .sidebar,[data-theme="dark"] .bottom-nav,[data-theme="dark"] .bn-drawer { box-shadow:0 1px 0 rgba(255,255,255,.06) }
+[data-theme="dark"] .card,[data-theme="dark"] .stat-card,[data-theme="dark"] .chart-card,[data-theme="dark"] .ritmo-wrap,[data-theme="dark"] .water-card,[data-theme="dark"] .history-table,[data-theme="dark"] .shop-category,[data-theme="dark"] .phase-card,[data-theme="dark"] .perim-history,[data-theme="dark"] .sleep-history,[data-theme="dark"] .heatmap-card { box-shadow:0 1px 4px rgba(0,0,0,.4) }
+[data-theme="dark"] .profile-avatar { border-color:rgba(14,165,160,.35) }
+[data-theme="dark"] .w-input,[data-theme="dark"] .sleep-inp,[data-theme="dark"] .medida-inp,[data-theme="dark"] .editor-inp,[data-theme="dark"] .profile-select { color-scheme:dark }
+
+/* Dark mode toggle */
+.theme-toggle { width:34px;height:34px;border-radius:50%;background:var(--layer);border:1.5px solid var(--border-mid);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0 }
+.theme-toggle:hover { border-color:var(--accent);background:var(--accent-dim) }
+.theme-toggle svg { width:16px;height:16px;stroke:var(--text-2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s }
+.theme-toggle:hover svg { stroke:var(--accent) }
+#themeIconSun { display:none } /* shown in dark mode */
+[data-theme="dark"] #themeIconMoon { display:none }
+[data-theme="dark"] #themeIconSun { display:block }
+
+/* ══ INLINE EDIT for timeline ══ */
+.tl-content { position:relative }
+.tl-edit-btn { position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:6px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s;color:var(--text-3) }
+.tl-content:hover .tl-edit-btn { opacity:1 }
+.tl-edit-btn:hover { background:var(--accent-dim);color:var(--accent) }
+.tl-edit-btn svg { width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round }
+.tl-inline-form { display:none;flex-direction:column;gap:7px;padding-top:10px;border-top:1px solid var(--border);margin-top:8px }
+.tl-inline-form.open { display:flex }
+.tl-inline-row { display:grid;grid-template-columns:80px 1fr;gap:7px }
+.tl-inline-inp { background:var(--layer);border:1.5px solid var(--border-mid);border-radius:6px;padding:7px 9px;font-size:12px;font-family:var(--font);color:var(--text-1);outline:none;width:100%;transition:all .18s }
+.tl-inline-inp:focus { border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim) }
+.tl-inline-actions { display:flex;gap:6px }
+.tl-save-btn { flex:1;padding:7px;background:var(--accent);border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s }
+.tl-save-btn:hover { background:var(--accent-light) }
+.tl-cancel-btn { padding:7px 12px;background:transparent;border:1.5px solid var(--border-mid);border-radius:6px;color:var(--text-2);font-size:11px;cursor:pointer }
+.tl-inline-label { font-size:9px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:3px;display:block }
+
+/* ══════════════════════════════════════════
    EDITOR DE RUTINAS
 ══════════════════════════════════════════ */
 .editor-day-strip { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 16px }
@@ -778,6 +950,16 @@ input, select { font-family:inherit }
       <span style="color:var(--text-2);font-size:11px">días</span>
       <strong id="countdown">—</strong>
     </div>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+      <!-- Moon: shown in light mode -->
+      <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <!-- Sun: shown in dark mode -->
+      <svg id="themeIconSun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+    <div class="topbar-avatar" onclick="showTab('perfil', document.querySelector('.sidebar-item[data-tab=perfil]'))" title="Mi perfil">
+      <img id="topbarAvatarImg" src="" alt="avatar">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </div>
   </div>
 </header>
 
@@ -812,14 +994,14 @@ input, select { font-family:inherit }
     <button class="sidebar-item" onclick="showTab('compras',this)">
       <span class="s-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span> Lista de Compras
     </button>
-    <button class="sidebar-item" onclick="showTab('alertas',this)">
-      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span> Alertas
-    </button>
     <button class="sidebar-item" onclick="showTab('pautas',this)">
       <span class="s-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Mis Pautas
     </button>
     <button class="sidebar-item" onclick="showTab('editor',this)">
       <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span> Editor de Rutinas
+    </button>
+    <button class="sidebar-item" data-tab="perfil" onclick="showTab('perfil',this)">
+      <span class="s-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Mi Perfil
     </button>
   </aside>
 
@@ -958,9 +1140,15 @@ input, select { font-family:inherit }
 
     <!-- ══ RUTINA ══ -->
     <section id="s-rutina" class="section">
-      <div class="page-header">
-        <div class="page-eyebrow">Tu plan diario</div>
-        <div class="page-title">Rutinas</div>
+      <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="page-eyebrow">Tu plan diario</div>
+          <div class="page-title">Rutinas</div>
+        </div>
+        <button id="rutinEditToggle" onclick="toggleRutinaEditMode()" style="margin-top:8px;display:flex;align-items:center;gap:6px;padding:7px 13px;background:var(--layer);border:1.5px solid var(--border-mid);border-radius:var(--r-sm);font-size:11px;font-weight:600;color:var(--text-2);cursor:pointer;transition:all .15s;white-space:nowrap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar
+        </button>
       </div>
       <div class="day-strip">
         <button class="day-btn" onclick="loadDay('lunes',this)"><span class="d-abbr">Lun</span><span class="d-name">L</span></button>
@@ -1128,27 +1316,6 @@ input, select { font-family:inherit }
     </section>
 
     <!-- ══ ALERTAS ══ -->
-    <section id="s-alertas" class="section">
-      <div class="page-header">
-        <div class="page-eyebrow">Notificaciones</div>
-        <div class="page-title">Alertas</div>
-        <div class="page-sub">De una app pasiva a una activa. Activa los permisos del navegador para recibir recordatorios reales.</div>
-      </div>
-      <div class="notif-grid">
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Hidratación</div><div class="toggle" id="togwater" onclick="toggleNotif('water')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Recordatorio cada 90 min (08:30–17:30) mientras diseñas.</div><span class="notif-badge" style="background:var(--blue-dim);color:var(--blue)">Cada 90 min</span></div>
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Frontera nocturna</div><div class="toggle" id="tognight" onclick="toggleNotif('night')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Apagar pantallas 23:30 de lunes a viernes.</div><span class="notif-badge" style="background:var(--purple-dim);color:var(--purple)">23:30 L–V</span></div>
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Colación</div><div class="toggle" id="togsnack" onclick="toggleNotif('snack')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Aviso a las 17:20 para preparar colación antes de salir.</div><span class="notif-badge" style="background:var(--accent-dim);color:var(--accent)">17:20 diario</span></div>
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Pesaje lunes</div><div class="toggle" id="togweight" onclick="toggleNotif('weight')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Lunes 07:45 — pesarte en ayunas y registrar.</div><span class="notif-badge" style="background:var(--amber-dim);color:var(--amber)">Lun 07:45</span></div>
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Medidas</div><div class="toggle" id="togmedidas" onclick="toggleNotif('medidas')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Recordatorio quincenal, sábado 09:00.</div><span class="notif-badge" style="background:var(--rose-dim);color:var(--rose)">Quincenal</span></div>
-        <div class="notif-card"><div class="notif-hdr"><div class="notif-ttl">Foto progreso</div><div class="toggle" id="togfoto" onclick="toggleNotif('foto')"><div class="toggle-dot"></div></div></div><div class="notif-desc">Cada 15 días, domingo 10:00 — foto frontal y lateral.</div><span class="notif-badge" style="background:var(--purple-dim);color:var(--purple)">Quincenal</span></div>
-      </div>
-      <div class="card">
-        <div class="card-title" style="font-size:13px;margin-bottom:8px">Estado del navegador</div>
-        <div id="notifPermStatus" style="font-size:12px;color:var(--text-2);margin-bottom:10px"></div>
-        <button onclick="requestNotifPerm()" style="padding:10px 18px;background:transparent;border:1px solid var(--accent);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer">Activar permisos</button>
-      </div>
-    </section>
-
     <!-- ══ PAUTAS ══ -->
     <section id="s-pautas" class="section">
       <div class="page-header">
@@ -1228,57 +1395,319 @@ input, select { font-family:inherit }
       </div>
     </section>
 
+    <!-- ══ PERFIL ══ -->
+    <section id="s-perfil" class="section">
+      <div class="page-header">
+        <div class="page-eyebrow">Tu cuenta</div>
+        <div class="page-title">Perfil</div>
+      </div>
+
+      <!-- Avatar + nombre -->
+      <div class="card">
+        <div class="profile-avatar-wrap">
+          <div class="profile-avatar" onclick="document.getElementById('avatarInput').click()">
+            <img id="profileAvatarImg" src="" alt="avatar">
+            <span class="profile-avatar-icon">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <div class="profile-avatar-edit">
+              <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+          </div>
+          <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarChange(event)">
+          <div>
+            <div class="profile-name" id="profileName">Alex Designer</div>
+            <div class="profile-plan">Plan Premium</div>
+          </div>
+        </div>
+        <button class="profile-edit-btn" onclick="openProfileEdit()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar perfil
+        </button>
+      </div>
+
+      <!-- Edit modal inline -->
+      <div id="profileEditCard" class="card" style="display:none;border-color:var(--accent-glow)">
+        <div class="card-title" style="margin-bottom:14px">Editar información</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <label style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Nombre</label>
+            <input class="w-input" id="editName" type="text" placeholder="Tu nombre" style="font-size:14px;padding:10px 12px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Edad</label>
+            <input class="w-input" id="editAge" type="number" placeholder="Ej: 36" min="10" max="100" style="font-size:14px;padding:10px 12px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Altura (cm)</label>
+            <input class="w-input" id="editHeight" type="number" placeholder="Ej: 174" style="font-size:14px;padding:10px 12px">
+          </div>
+          <div>
+            <label style="font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:5px">Peso objetivo (kg)</label>
+            <input class="w-input" id="editGoal" type="number" placeholder="Ej: 80" step="0.1" style="font-size:14px;padding:10px 12px">
+          </div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button class="btn-primary" style="flex:1" onclick="saveProfileEdit()">Guardar</button>
+          <button onclick="document.getElementById('profileEditCard').style.display='none'" style="padding:12px 16px;background:transparent;border:1px solid var(--border-mid);border-radius:var(--r-sm);color:var(--text-2);font-size:13px;cursor:pointer">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Resumen físico -->
+      <div class="card">
+        <div class="profile-section-label">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Resumen Físico
+        </div>
+        <div class="metric-row">
+          <div class="metric-card">
+            <div class="metric-label">IMC (BMI)</div>
+            <div class="metric-value" id="profileBMI">—<span class="metric-unit"></span></div>
+            <div class="metric-sub" id="profileBMILabel" style="color:var(--green)">—</div>
+            <div class="bmi-bar"><div class="bmi-fill" id="profileBMIBar" style="width:0%;background:var(--green)"></div></div>
+            <div class="bmi-label-row"><span>16</span><span>18.5</span><span>25</span><span>30</span><span>40</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Grasa Corporal</div>
+            <div class="metric-value" id="profileFat">—<span class="metric-unit"> %</span></div>
+            <div class="metric-sub" id="profileFatLabel">Estimado</div>
+            <div class="bmi-bar" style="margin-top:6px"><div class="bmi-fill" id="profileFatBar" style="width:0%;background:var(--amber)"></div></div>
+          </div>
+        </div>
+        <div class="profile-stat-grid">
+          <div class="pstat">
+            <div class="pstat-val" id="pstatCW">—</div>
+            <div class="pstat-label">Peso actual</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-val" style="color:var(--accent)" id="pstatGoal">80</div>
+            <div class="pstat-label">Objetivo</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-val" id="pstatLost" style="color:var(--green)">—</div>
+            <div class="pstat-label">Perdidos</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-val" id="pstatLeft" style="color:var(--amber)">—</div>
+            <div class="pstat-label">Restantes</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-val" id="pstatWeeks">13</div>
+            <div class="pstat-label">Semanas</div>
+          </div>
+          <div class="pstat">
+            <div class="pstat-val" id="pstatDays">—</div>
+            <div class="pstat-label">Días</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notificaciones -->
+      <div class="card">
+        <div class="profile-section-label">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Notificaciones
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--blue-dim);color:var(--blue)">
+              <svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Hidratación</div>
+              <div class="profile-notif-desc">Recordatorio cada 90 min (08:30–17:30)</div>
+            </div>
+          </div>
+          <div class="toggle" id="togwater" onclick="toggleNotif('water')"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--purple-dim);color:var(--purple)">
+              <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Frontera nocturna</div>
+              <div class="profile-notif-desc">Apagar pantallas 23:30 L–V</div>
+            </div>
+          </div>
+          <div class="toggle" id="tognight" onclick="toggleNotif('night')"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--accent-dim);color:var(--accent)">
+              <svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Colación</div>
+              <div class="profile-notif-desc">Aviso a las 17:20 antes de salir</div>
+            </div>
+          </div>
+          <div class="toggle" id="togsnack" onclick="toggleNotif('snack')"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--amber-dim);color:var(--amber)">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Pesaje lunes</div>
+              <div class="profile-notif-desc">Lunes 07:45 — pésate en ayunas</div>
+            </div>
+          </div>
+          <div class="toggle" id="togweight" onclick="toggleNotif('weight')"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--rose-dim);color:var(--rose)">
+              <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Medidas</div>
+              <div class="profile-notif-desc">Quincenal — sábado 09:00</div>
+            </div>
+          </div>
+          <div class="toggle" id="togmedidas" onclick="toggleNotif('medidas')"><div class="toggle-dot"></div></div>
+        </div>
+        <div class="profile-notif-row">
+          <div class="profile-notif-info">
+            <div class="profile-notif-icon" style="background:var(--purple-dim);color:var(--purple)">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <div>
+              <div class="profile-notif-name">Foto progreso</div>
+              <div class="profile-notif-desc">Quincenal — domingo 10:00</div>
+            </div>
+          </div>
+          <div class="toggle" id="togfoto" onclick="toggleNotif('foto')"><div class="toggle-dot"></div></div>
+        </div>
+        <!-- Estado navegador -->
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Permisos del navegador</div>
+          <div id="notifPermStatus" style="font-size:12px;color:var(--text-2);margin-bottom:10px"></div>
+          <button onclick="requestNotifPerm()" style="padding:9px 16px;background:transparent;border:1.5px solid var(--accent);border-radius:var(--r-sm);color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--accent-dim)'" onmouseout="this.style.background='transparent'">Activar permisos</button>
+        </div>
+      </div>
+
+      <!-- Preferencias -->
+      <div class="card">
+        <div class="profile-section-label">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Preferencias de App
+        </div>
+        <div class="profile-pref-row">
+          <div class="profile-pref-label">Unidades de Medidas</div>
+          <select class="profile-select" id="prefUnits" onchange="saveProfilePrefs()">
+            <option value="metric">Métrico (kg, cm)</option>
+            <option value="imperial">Imperial (lb, in)</option>
+          </select>
+        </div>
+        <div class="profile-pref-row">
+          <div class="profile-pref-label">Tema</div>
+          <select class="profile-select" id="prefTheme" onchange="saveProfilePrefs()">
+            <option value="light">Claro (Predeterminado)</option>
+            <option value="auto">Automático</option>
+          </select>
+        </div>
+        <div class="profile-pref-row">
+          <div class="profile-pref-label">Meta de agua (ml)</div>
+          <select class="profile-select" id="prefWater" onchange="saveProfilePrefs()">
+            <option value="2000">2.000 ml</option>
+            <option value="2500" selected>2.500 ml</option>
+            <option value="3000">3.000 ml</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Cerrar sesión -->
+      <button class="profile-signout" onclick="showToast('Sesión cerrada')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar Sesión
+      </button>
+    </section>
+
   </div><!-- end content-area -->
 </div><!-- end app-shell -->
 
 <!-- ══ BOTTOM NAV (mobile only) ══ -->
+<div class="bn-backdrop" id="bnBackdrop" onclick="closeMoreDrawer()"></div>
+<div class="bn-drawer" id="bnDrawer">
+  <div class="bn-drawer-handle"></div>
+  <div class="bn-drawer-grid">
+    <button class="bn-drawer-item" onclick="showTabDrawer('sueno',this)" data-tab="sueno">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
+      <span class="di-label">Sueño</span>
+    </button>
+    <button class="bn-drawer-item" onclick="showTabDrawer('compras',this)" data-tab="compras">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
+      <span class="di-label">Compras</span>
+    </button>
+    <button class="bn-drawer-item" onclick="showTabDrawer('pautas',this)" data-tab="pautas">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span class="di-label">Pautas</span>
+    </button>
+    <button class="bn-drawer-item" onclick="showTabDrawer('editor',this)" data-tab="editor">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+      <span class="di-label">Editor</span>
+    </button>
+    <button class="bn-drawer-item" onclick="showTabDrawer('perfil',this)" data-tab="perfil">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="di-label">Perfil</span>
+    </button>
+  </div>
+</div>
+
 <nav class="bottom-nav" id="bottomNav">
-  <button class="bn-item active" onclick="showTab('dashboard',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-    <span class="bn-label">Dashboard</span>
-  </button>
-  <button class="bn-item" onclick="showTab('rutina',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-    <span class="bn-label">Rutinas</span>
-  </button>
-  <button class="bn-item" onclick="showTab('minuta',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
-    <span class="bn-label">Minuta</span>
-  </button>
-  <button class="bn-item" onclick="showTab('control',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
-    <span class="bn-label">Control</span>
-  </button>
-  <button class="bn-item" onclick="showTab('cuerpo',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-    <span class="bn-label">Cuerpo</span>
-  </button>
-  <button class="bn-item" onclick="showTab('sueno',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-    <span class="bn-label">Sueño</span>
-  </button>
-  <button class="bn-item" onclick="showTab('compras',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg></span>
-    <span class="bn-label">Compras</span>
-  </button>
-  <button class="bn-item" onclick="showTab('alertas',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-    <span class="bn-label">Alertas</span>
-  </button>
-  <button class="bn-item" onclick="showTab('pautas',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
-    <span class="bn-label">Pautas</span>
-  </button>
-  <button class="bn-item" onclick="showTab('editor',this)">
-    <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-    <span class="bn-label">Editor</span>
-  </button>
+  <div class="bn-main">
+    <button class="bn-item active" id="bn-dashboard" onclick="showTab('dashboard',this)">
+      <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+      <span class="bn-label">Inicio</span>
+    </button>
+    <button class="bn-item" id="bn-rutina" onclick="showTab('rutina',this)">
+      <span class="bn-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="bn-label">Rutinas</span>
+    </button>
+    <button class="bn-item" id="bn-minuta" onclick="showTab('minuta',this)">
+      <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></span>
+      <span class="bn-label">Minuta</span>
+    </button>
+    <button class="bn-item" id="bn-cuerpo" onclick="showTab('cuerpo',this)">
+      <span class="bn-icon"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="bn-label">Cuerpo</span>
+    </button>
+    <button class="bn-more-btn" id="bnMoreBtn" onclick="toggleMoreDrawer()">
+      <span class="bn-icon"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span>
+      <span class="bn-label">Más</span>
+    </button>
+  </div>
 </nav>
 
 <script>
 /* ══════ CONFIG ══════ */
 const START_DATE=new Date('2025-05-18T12:00:00'),END_DATE=new Date('2025-08-19T12:00:00');
 const GOAL=80.0,START_W=88.0,TOTAL_DAYS=Math.ceil((END_DATE-START_DATE)/86400000);
+const CHILE_OFFSET = -4; // Chile Standard Time GMT-4
+
+// Get current date in Chile timezone
+function chileNow() {
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utc + CHILE_OFFSET * 3600000);
+}
+function today() {
+  const c = chileNow();
+  return new Date(c.getFullYear(), c.getMonth(), c.getDate());
+}
+function todayStr() {
+  const c = chileNow();
+  const y = c.getFullYear();
+  const m = String(c.getMonth()+1).padStart(2,'0');
+  const d = String(c.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+// Day of week in Chile (0=Sunday)
+function chileWeekDay() {
+  return chileNow().getDay();
+}
 
 const FASES=[
   {id:1,nombre:'Fase 1 — Ajuste Inicial',rango:'18 May → 15 Jun',kcal:2000,prot:160,carb:180,grasa:70,deficit:600,semanas:[1,2,3,4],descripcion:'Déficit moderado de 600 kcal preservando masa muscular para gym y básquet.',cambios:['Carbohidratos complejos en almuerzo y cena post-gym','Proteínas altas (160g) para proteger músculo','Grasas saludables para equilibrio hormonal','Colación estratégica al salir de la oficina']},
@@ -1315,40 +1744,179 @@ function save(){
 }
 
 /* ══ TIME ══ */
-function today(){return new Date(new Date().toDateString())}
-function todayStr(){return today().toISOString().split('T')[0]}
-function daysSinceStart(){return Math.max(0,Math.ceil((today()-START_DATE)/86400000))}
-function daysLeft(){return Math.max(0,Math.ceil((END_DATE-today())/86400000))}
-function weekNum(){return Math.ceil((daysSinceStart()+1)/7)}
+function daysSinceStart(){return Math.max(0,Math.ceil((today()-START_DATE)/86400000));}
+function daysLeft(){return Math.max(0,Math.ceil((END_DATE-today())/86400000));}
+function weekNum(){return Math.ceil((daysSinceStart()+1)/7);}
 function activePauta(){if(!pautasAceptadas.length)return FASES[0];const last=pautasAceptadas[pautasAceptadas.length-1];return{...(FASES.find(f=>f.id===last.faseId)||FASES[0]),...last};}
 
 /* ══ TOAST ══ */
 function showToast(msg,dur=2600){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
 
 /* ══ TABS ══ */
+/* ══ MORE DRAWER ══ */
+function toggleMoreDrawer(){
+  const drawer=document.getElementById('bnDrawer');
+  const backdrop=document.getElementById('bnBackdrop');
+  const btn=document.getElementById('bnMoreBtn');
+  const isOpen=drawer.classList.contains('open');
+  if(isOpen){closeMoreDrawer();}
+  else{drawer.classList.add('open');backdrop.classList.add('open');btn.classList.add('open');}
+}
+function closeMoreDrawer(){
+  document.getElementById('bnDrawer').classList.remove('open');
+  document.getElementById('bnBackdrop').classList.remove('open');
+  document.getElementById('bnMoreBtn').classList.remove('open');
+}
+function showTabDrawer(id,btn){
+  closeMoreDrawer();
+  // Remove active from drawer items
+  document.querySelectorAll('.bn-drawer-item').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  // Remove active from main nav items
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
+  showTab(id,null);
+}
+
 function showTab(id,btn){
+  // Try to get section — if not found, skip
+  const sec=document.getElementById('s-'+id);
+  if(!sec){console.warn('Section not found:',id);return;}
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('s-'+id).classList.add('active');
-  // Desktop sidebar
+  sec.classList.add('active');
+  // Sync desktop sidebar
   document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
-  // Mobile bottom nav
+  // Sync main mobile nav (only 4 main items)
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));
   if(btn){
     btn.classList.add('active');
-    // Sync the other nav
-    const isMobile=window.innerWidth<768;
-    if(isMobile){
-      const sideBtn=document.querySelector(`.sidebar-item[onclick="showTab('${id}',this)"]`);
-      if(sideBtn)sideBtn.classList.add('active');
-    } else {
-      const bnBtn=document.querySelector(`.bn-item[onclick="showTab('${id}',this)"]`);
+    // Also sync sidebar
+    const sideBtn=document.querySelector(`.sidebar-item[data-tab="${id}"], .sidebar-item[onclick*="'${id}'"]`);
+    if(sideBtn)sideBtn.classList.add('active');
+  } else {
+    // Sync sidebar without btn ref
+    const sideBtn=document.querySelector(`.sidebar-item[data-tab="${id}"], .sidebar-item[onclick*="'${id}'"]`);
+    if(sideBtn)sideBtn.classList.add('active');
+    // Sync main bn-items
+    const mainTabs=['dashboard','rutina','minuta','cuerpo'];
+    if(mainTabs.includes(id)){
+      const bnBtn=document.getElementById('bn-'+id);
       if(bnBtn)bnBtn.classList.add('active');
     }
   }
-  // Scroll content area to top
   const ca=document.querySelector('.content-area');if(ca)ca.scrollTop=0;
-  const map={dashboard:updateAll,control:()=>{renderHistory();updateEvalInfo();},pautas:renderPautasPage,minuta:renderMinuta,cuerpo:renderCuerpo,sueno:renderSueno,compras:generateShopList,alertas:renderAlertas,editor:()=>{editorLoadDay(editorCurrentDay,document.querySelector('.editor-day-btn'));}};
+  const map={
+    dashboard:updateAll,
+    control:()=>{renderHistory();updateEvalInfo();},
+    pautas:renderPautasPage,
+    minuta:renderMinuta,
+    cuerpo:renderCuerpo,
+    sueno:renderSueno,
+    compras:generateShopList,
+    editor:()=>{editorLoadDay(editorCurrentDay,document.querySelector('.editor-day-btn'));},
+    perfil:renderPerfil
+  };
   if(map[id])map[id]();
+}
+
+/* ══ PERFIL JS ══ */
+let profileData = JSON.parse(localStorage.getItem('nt_profile')) || {
+  name: 'Alex Designer', age: 36, height: 174, goalWeight: 80, avatar: null, prefs: {units:'metric',theme:'light',water:2500}
+};
+
+function saveProfile(){localStorage.setItem('nt_profile',JSON.stringify(profileData));}
+
+function renderPerfil(){
+  // Sync all notification toggles
+  syncAllToggles();
+  // Name
+  const nameEl=document.getElementById('profileName');if(nameEl)nameEl.textContent=profileData.name||'—';
+  // Avatar
+  if(profileData.avatar){
+    ['profileAvatarImg','topbarAvatarImg'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.src=profileData.avatar;el.style.display='block';}
+    });
+    const icon=document.querySelector('.profile-avatar-icon');if(icon)icon.style.display='none';
+  }
+  // Current weight
+  const cw=weights[weights.length-1]?.weight||88;
+  const goal=profileData.goalWeight||80;
+  const lost=Math.max(0,START_W-cw);
+  const left=Math.max(0,cw-goal);
+  // Stats
+  const setStat=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  setStat('pstatCW', cw.toFixed(1)+' kg');
+  setStat('pstatGoal', goal+' kg');
+  setStat('pstatLost', lost.toFixed(1)+' kg');
+  setStat('pstatLeft', left.toFixed(1)+' kg');
+  setStat('pstatWeeks', '13 sem');
+  setStat('pstatDays', daysLeft()+' días');
+  // BMI
+  const h=profileData.height||174;
+  const bmi=(cw/((h/100)*(h/100)));
+  const bmiEl=document.getElementById('profileBMI');
+  if(bmiEl)bmiEl.innerHTML=bmi.toFixed(1)+'<span class="metric-unit"></span>';
+  let bmiLabel='Normal',bmiColor='var(--green)',bmiPct=50;
+  if(bmi<18.5){bmiLabel='Bajo peso';bmiColor='var(--blue)';bmiPct=20;}
+  else if(bmi<25){bmiLabel='Normal';bmiColor='var(--green)';bmiPct=50;}
+  else if(bmi<30){bmiLabel='Sobrepeso';bmiColor='var(--amber)';bmiPct=70;}
+  else{bmiLabel='Obesidad';bmiColor='var(--red)';bmiPct=90;}
+  const bmiLblEl=document.getElementById('profileBMILabel');if(bmiLblEl){bmiLblEl.textContent=bmiLabel;bmiLblEl.style.color=bmiColor;}
+  const bmiBar=document.getElementById('profileBMIBar');if(bmiBar){bmiBar.style.width=bmiPct+'%';bmiBar.style.background=bmiColor;}
+  // Body fat (Deurenberg formula approx)
+  const age=profileData.age||36;
+  const fat=1.2*bmi+0.23*age-10.8*1-5.4; // male
+  const fatEl=document.getElementById('profileFat');
+  if(fatEl)fatEl.innerHTML=fat.toFixed(1)+'<span class="metric-unit"> %</span>';
+  const fatBar=document.getElementById('profileFatBar');if(fatBar)fatBar.style.width=Math.min(100,fat*2.5)+'%';
+  // Prefs
+  const units=document.getElementById('prefUnits');if(units)units.value=profileData.prefs?.units||'metric';
+  const theme=document.getElementById('prefTheme');if(theme)theme.value=profileData.prefs?.theme||'light';
+  const pw=document.getElementById('prefWater');if(pw)pw.value=String(profileData.prefs?.water||2500);
+}
+
+function handleAvatarChange(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    profileData.avatar=ev.target.result;saveProfile();
+    ['profileAvatarImg','topbarAvatarImg'].forEach(id=>{
+      const el=document.getElementById(id);if(el){el.src=ev.target.result;el.style.display='block';}
+    });
+    const icon=document.querySelector('.profile-avatar-icon');if(icon)icon.style.display='none';
+    showToast('Foto de perfil actualizada');
+  };reader.readAsDataURL(file);
+}
+
+function openProfileEdit(){
+  const card=document.getElementById('profileEditCard');
+  if(!card)return;
+  card.style.display=card.style.display==='none'?'block':'none';
+  if(card.style.display==='block'){
+    const n=document.getElementById('editName');if(n)n.value=profileData.name||'';
+    const a=document.getElementById('editAge');if(a)a.value=profileData.age||36;
+    const hh=document.getElementById('editHeight');if(hh)hh.value=profileData.height||174;
+    const g=document.getElementById('editGoal');if(g)g.value=profileData.goalWeight||80;
+  }
+}
+
+function saveProfileEdit(){
+  const n=document.getElementById('editName');if(n&&n.value)profileData.name=n.value;
+  const a=document.getElementById('editAge');if(a&&a.value)profileData.age=parseInt(a.value);
+  const hh=document.getElementById('editHeight');if(hh&&hh.value)profileData.height=parseInt(hh.value);
+  const g=document.getElementById('editGoal');if(g&&g.value)profileData.goalWeight=parseFloat(g.value);
+  saveProfile();
+  document.getElementById('profileEditCard').style.display='none';
+  renderPerfil();
+  showToast('Perfil actualizado');
+}
+
+function saveProfilePrefs(){
+  const u=document.getElementById('prefUnits');
+  const t=document.getElementById('prefTheme');
+  const w=document.getElementById('prefWater');
+  profileData.prefs={units:u?u.value:'metric',theme:t?t.value:'light',water:w?parseInt(w.value):2500};
+  saveProfile();showToast('Preferencias guardadas');
 }
 
 /* ══ ADHERENCIA ══ */
@@ -1585,15 +2153,40 @@ function clearShopChecked(){const prefix=shopPhase+'_';Object.keys(shopChecked).
 function copyShopList(){const items=SHOP_ITEMS[shopPhase]||SHOP_ITEMS[1];let text=`Lista Supermercado — Fase ${shopPhase}\n`;items.forEach(cat=>{text+=`\n${cat.cat}\n`;cat.items.forEach(i=>{text+=`  [ ] ${i.n} (${i.u})\n`;});});navigator.clipboard.writeText(text).then(()=>showToast('Lista copiada al portapapeles')).catch(()=>showToast('No se pudo copiar'));}
 
 /* ══ NOTIFICACIONES ══ */
-function renderAlertas(){
-  Object.entries(notifSettings).forEach(([k,v])=>{const t=document.getElementById('tog'+k);if(t)t.classList.toggle('on',v);});
-  const perm=Notification.permission,el=document.getElementById('notifPermStatus');
-  if(perm==='granted'){el.textContent='✓ Permisos activos. Las alertas del navegador están habilitadas.';el.style.color='var(--green)';}
-  else if(perm==='denied'){el.textContent='✗ Permisos bloqueados. Habilítalos en la configuración del navegador.';el.style.color='var(--red)';}
-  else{el.textContent='Las notificaciones no están habilitadas. Actívalas para recibir recordatorios.';el.style.color='var(--text-2)';}
+function syncAllToggles(){
+  // All toggles now live in Perfil section with ids: togwater, tognight, togsnack, togweight, togmedidas, togfoto
+  Object.entries(notifSettings).forEach(([k,v])=>{
+    const el=document.getElementById('tog'+k);
+    if(el)el.classList.toggle('on',v);
+  });
+  // Update browser permission status text
+  const permEl=document.getElementById('notifPermStatus');
+  if(permEl){
+    const perm=Notification.permission;
+    if(perm==='granted'){permEl.textContent='✓ Permisos activos. Las alertas del navegador están habilitadas.';permEl.style.color='var(--green)';}
+    else if(perm==='denied'){permEl.textContent='✗ Permisos bloqueados. Habilítalos en la configuración del navegador.';permEl.style.color='var(--red)';}
+    else{permEl.textContent='Las notificaciones no están habilitadas. Actívalas para recibir recordatorios.';permEl.style.color='var(--text-2)';}
+  }
 }
-function toggleNotif(key){notifSettings[key]=!notifSettings[key];save();const id='tog'+key;document.getElementById(id).classList.toggle('on',notifSettings[key]);if(notifSettings[key]){setupNotif(key);showToast('Alerta activada');}else{clearNotif(key);showToast('Alerta desactivada');}}
-function requestNotifPerm(){Notification.requestPermission().then(p=>{renderAlertas();if(p==='granted')showToast('✓ Permisos de notificación activados');});}
+// Keep renderAlertas as alias for backward compat
+function renderAlertas(){syncAllToggles();}
+
+function toggleNotif(key){
+  notifSettings[key]=!notifSettings[key];
+  save();
+  // Sync the toggle element (now there's only one per key)
+  const el=document.getElementById('tog'+key);
+  if(el)el.classList.toggle('on',notifSettings[key]);
+  if(notifSettings[key]){setupNotif(key);showToast('Alerta activada');}
+  else{clearNotif(key);showToast('Alerta desactivada');}
+}
+
+function requestNotifPerm(){
+  Notification.requestPermission().then(p=>{
+    syncAllToggles();
+    if(p==='granted')showToast('Permisos de notificación activados');
+  });
+}
 function setupNotif(key){
   if(Notification.permission!=='granted'){Notification.requestPermission().then(p=>{if(p==='granted')setupNotif(key);});return;}
   clearNotif(key);
@@ -1623,20 +2216,20 @@ function renderPautasPage(){
 // Rutinas base (se pueden sobreescribir con editorRoutines guardadas)
 const BASE_ROUTINES={
   lunes:[
-    {time:'07:30',action:'Desayuno',desc:'Carga de motor. Opción A o B de la minuta.',type:'food'},
-    {time:'08:30',action:'Oficina',desc:'Ingreso. Botella de 1L en el escritorio desde el inicio.',type:'default'},
+    {time:'09:00',action:'Desayuno',desc:'Carga de motor. Opción A o B de la minuta.',type:'food'},
+    {time:'09:30',action:'Oficina',desc:'Ingreso al trabajo. Botella de 1L en el escritorio desde el inicio.',type:'default'},
     {time:'13:30',action:'Almuerzo',desc:'Carga principal: carbos complejos y proteínas.',type:'food'},
     {time:'17:30',action:'Colación + salida',desc:'Yogur + plátano en el trayecto (llega a casa 18:15).',type:'food'},
     {time:'18:15',action:'Llegada a casa',desc:'Cambio de modo. Preparar kit para el partido.',type:'default'},
     {time:'18:30',action:'Proyecto (2 hrs)',desc:'Bloque de diseño. Protocolo anti-ansiedad si hay estrés.',type:'work'},
-    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión activa post-gym. Hidratación al volver.',type:'pet'},
+    {time:'20:10',action:'Paseo con Clarita',desc:'30 minutos de paseo con la poodle. Desconexión activa. Hidratación al volver.',type:'pet'},
     {time:'20:50',action:'Básquetbol',desc:'Partido 1 hora. Hidratación constante. Sin comer en el intervalo.',type:'sport'},
     {time:'22:30',action:'Cena rápida',desc:'Atún + ensalada ligera. Sin carbos densos.',type:'food'},
     {time:'23:30',action:'Dormir',desc:'Meta: 7.5 hrs. Aquí ocurre la quema de grasa y la recuperación muscular.',type:'sleep'}
   ],
   martes:[
-    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
-    {time:'08:30',action:'Oficina',desc:'500 ml de agua en la primera hora.',type:'default'},
+    {time:'09:00',action:'Desayuno',desc:'Opción base. Motor para el día.',type:'food'},
+    {time:'09:30',action:'Oficina',desc:'Ingreso al trabajo. Botella de 1L en el escritorio desde el inicio.',type:'default'},
     {time:'13:30',action:'Almuerzo',desc:'Proteína + carbo complejo + ensalada.',type:'food'},
     {time:'17:30',action:'Colación + salida',desc:'Pre-gym. Yogur + fruta en el trayecto.',type:'food'},
     {time:'18:15',action:'Llegada a casa',desc:'Cambio de ropa. Hidratación antes de salir.',type:'default'},
@@ -1647,8 +2240,8 @@ const BASE_ROUTINES={
     {time:'23:30',action:'Dormir',desc:'Apagar pantallas 30 min antes. Meta: antes de medianoche.',type:'sleep'}
   ],
   miercoles:[
-    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
-    {time:'08:30',action:'Oficina',desc:'Hidratación constante durante la jornada.',type:'default'},
+    {time:'09:00',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'09:30',action:'Oficina',desc:'Ingreso al trabajo. Botella de 1L en el escritorio desde el inicio.',type:'default'},
     {time:'13:30',action:'Almuerzo',desc:'Carga principal.',type:'food'},
     {time:'17:30',action:'Colación + salida',desc:'Yogur + fruta.',type:'food'},
     {time:'18:15',action:'Llegada a casa',desc:'Transición.',type:'default'},
@@ -1659,8 +2252,8 @@ const BASE_ROUTINES={
     {time:'23:30',action:'Dormir',desc:'Recuperación general.',type:'sleep'}
   ],
   jueves:[
-    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
-    {time:'08:30',action:'Oficina',desc:'Ingreso al trabajo.',type:'default'},
+    {time:'09:00',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'09:30',action:'Oficina',desc:'Ingreso al trabajo. Botella de 1L en el escritorio desde el inicio.',type:'default'},
     {time:'13:30',action:'Almuerzo',desc:'Proteína + carbos complejos.',type:'food'},
     {time:'17:30',action:'Colación + salida',desc:'Pre-gym. Plátano + yogur.',type:'food'},
     {time:'18:15',action:'Llegada a casa',desc:'Preparación para el gym.',type:'default'},
@@ -1671,8 +2264,8 @@ const BASE_ROUTINES={
     {time:'00:00',action:'Dormir',desc:'Fin de jornada.',type:'sleep'}
   ],
   viernes:[
-    {time:'07:30',action:'Desayuno',desc:'Opción base.',type:'food'},
-    {time:'08:30',action:'Oficina',desc:'Último día de semana laboral.',type:'default'},
+    {time:'09:00',action:'Desayuno',desc:'Opción base.',type:'food'},
+    {time:'09:30',action:'Oficina',desc:'Ingreso al trabajo. Botella de 1L en el escritorio desde el inicio.',type:'default'},
     {time:'13:30',action:'Almuerzo',desc:'Almuerzo estándar.',type:'food'},
     {time:'17:30',action:'Colación + salida',desc:'Combustible para la tarde en casa.',type:'food'},
     {time:'18:15',action:'Llegada a casa',desc:'Transición.',type:'default'},
@@ -1682,7 +2275,7 @@ const BASE_ROUTINES={
     {time:'00:00',action:'Dormir',desc:'No trasnochar. Descanso muscular y mental.',type:'sleep'}
   ],
   sabado:[
-    {time:'09:00',action:'Desayuno',desc:'Pre-entreno. Comer 1.5 hrs antes del gym.',type:'food'},
+    {time:'10:00',action:'Desayuno',desc:'Fin de semana — desayuno tardío. Pre-entreno: comer 1.5 hrs antes del gym.',type:'food'},
     {time:'11:00',action:'Gym Funcional',desc:'Último entrenamiento de la semana. 1 hora.',type:'sport'},
     {time:'12:10',action:'Paseo con Clarita',desc:'30 minutos de paseo post-gym. Sin apuro. Buena dosis de vitamina D.',type:'pet'},
     {time:'13:30',action:'Almuerzo libre',desc:'Recarga estratégica: asado magro, mariscal o comida familiar. Disfrutar sin culpa.',type:'food'},
@@ -1690,9 +2283,9 @@ const BASE_ROUTINES={
     {time:'19:30',action:'Cena',desc:'Ajustar según almuerzo. Si fue abundante: solo proteína + verduras.',type:'food'}
   ],
   domingo:[
-    {time:'08:30',action:'Desayuno',desc:'Alta en proteína. Motor para el bloque de trabajo.',type:'food'},
-    {time:'09:00',action:'Proyecto AM (5 hrs)',desc:'Diseño con la mente fresca. Café antes de las 10:30. Agua mineral al lado.',type:'work'},
-    {time:'11:30',action:'Infusión / Break',desc:'Pausa 5 min. Té de menta o chai — "falso llenado" anti-ansiedad.',type:'default'},
+    {time:'10:00',action:'Desayuno',desc:'Fin de semana — desayuno tardío. Alta en proteína.',type:'food'},
+    {time:'10:30',action:'Proyecto AM (4 hrs)',desc:'Diseño con la mente fresca. Agua mineral al lado.',type:'work'},
+    {time:'12:00',action:'Infusión / Break',desc:'Pausa 5 min. Té de menta o chai — "falso llenado" anti-ansiedad.',type:'default'},
     {time:'14:00',action:'Almuerzo',desc:'Comida libre estratégica como recompensa al terminar el bloque.',type:'food'},
     {time:'14:40',action:'Paseo con Clarita',desc:'30 minutos de paseo post-almuerzo. Digestión activa y desconexión dominical.',type:'pet'},
     {time:'Tarde',action:'Meal Prep',desc:'Preparar colaciones para la semana: pepinillos, jalea, bastones de verdura.',type:'default'}
@@ -1703,27 +2296,96 @@ const BASE_ROUTINES={
 let editorRoutines = JSON.parse(localStorage.getItem('nt_routines')) || null;
 let routines = editorRoutines ? { ...BASE_ROUTINES, ...editorRoutines } : { ...BASE_ROUTINES };
 
-function saveRoutines() {
-  localStorage.setItem('nt_routines', JSON.stringify(routines));
+function saveRoutines() { localStorage.setItem('nt_routines', JSON.stringify(routines)); }
+
+const TYPE_COLORS = { food:'var(--accent)',sport:'var(--amber)',work:'var(--purple)',sleep:'var(--blue)',default:'var(--text-3)',pet:'var(--green)' };
+const TYPE_LABELS = { food:'Comida',sport:'Deporte',work:'Trabajo',sleep:'Sueño',default:'General',pet:'Mascota' };
+
+let rutinaEditMode = false;
+let currentDay = 'lunes';
+
+function toggleRutinaEditMode() {
+  rutinaEditMode = !rutinaEditMode;
+  const btn = document.getElementById('rutinEditToggle');
+  if (btn) {
+    btn.style.borderColor = rutinaEditMode ? 'var(--accent)' : 'var(--border-mid)';
+    btn.style.color = rutinaEditMode ? 'var(--accent)' : 'var(--text-2)';
+    btn.style.background = rutinaEditMode ? 'var(--accent-dim)' : 'var(--layer)';
+    btn.querySelector('svg').style.stroke = rutinaEditMode ? 'var(--accent)' : 'currentColor';
+    btn.lastChild.textContent = rutinaEditMode ? ' Listo' : ' Editar';
+  }
+  // Re-render current day in/out of edit mode
+  loadDay(currentDay, null);
 }
 
-// Colores y labels de tipo para el editor
-const TYPE_COLORS = {
-  food:'var(--accent)',sport:'var(--amber)',work:'var(--purple)',
-  sleep:'var(--blue)',default:'var(--text-3)',pet:'var(--green)'
-};
-const TYPE_LABELS = {
-  food:'Comida',sport:'Deporte',work:'Trabajo',
-  sleep:'Sueño',default:'General',pet:'Mascota'
-};
+function saveInlineEdit(day, idx) {
+  const timeEl = document.getElementById(`tl-time-${idx}`);
+  const actionEl = document.getElementById(`tl-action-${idx}`);
+  const descEl = document.getElementById(`tl-desc-${idx}`);
+  if (!timeEl || !actionEl || !descEl) return;
+  const items = JSON.parse(JSON.stringify(routines[day] || BASE_ROUTINES[day] || []));
+  if (!items[idx]) return;
+  items[idx].time   = timeEl.value || items[idx].time;
+  items[idx].action = actionEl.value || items[idx].action;
+  items[idx].desc   = descEl.value;
+  routines[day] = items;
+  saveRoutines();
+  loadDay(day, null);
+  showToast('Bloque actualizado');
+}
 
-function loadDay(day,btn){
-  if(btn){document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
-  const tl=document.getElementById('timeline');tl.innerHTML='';
-  (routines[day]||BASE_ROUTINES[day]||[]).forEach(item=>{
-    const dotClass = item.type === 'pet' ? 'tl-dot-food' : `tl-dot-${item.type}`;
-    const color = item.type === 'pet' ? 'var(--green)' : (TYPE_COLORS[item.type]||'var(--text-2)');
-    tl.innerHTML+=`<div class="tl-item"><div class="tl-dot ${dotClass}" style="${item.type==='pet'?'background:var(--green);box-shadow:0 0 0 1px var(--green)':''}"></div><div class="tl-content"><div class="tl-time">${item.time}</div><div class="tl-action" style="color:${color}">${item.action}</div><div class="tl-desc">${item.desc}</div></div></div>`;
+function cancelInlineEdit(idx) {
+  const form = document.getElementById(`tl-form-${idx}`);
+  if (form) form.classList.remove('open');
+}
+
+function loadDay(day, btn) {
+  currentDay = day;
+  if (btn) { document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  const tl = document.getElementById('timeline');
+  if (!tl) return;
+  tl.innerHTML = '';
+  const items = routines[day] || BASE_ROUTINES[day] || [];
+  items.forEach((item, idx) => {
+    const dotClass = item.type === 'pet' ? 'tl-dot-pet' : `tl-dot-${item.type}`;
+    const color = item.type === 'pet' ? 'var(--green)' : (TYPE_COLORS[item.type] || 'var(--text-2)');
+    const editBtn = rutinaEditMode
+      ? `<button class="tl-edit-btn" onclick="document.getElementById('tl-form-${idx}').classList.toggle('open')" title="Editar bloque">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>`
+      : '';
+    const inlineForm = rutinaEditMode
+      ? `<div class="tl-inline-form" id="tl-form-${idx}">
+          <div class="tl-inline-row">
+            <div>
+              <label class="tl-inline-label">Hora</label>
+              <input class="tl-inline-inp" id="tl-time-${idx}" type="text" value="${item.time}" placeholder="HH:MM" style="font-family:var(--mono)">
+            </div>
+            <div>
+              <label class="tl-inline-label">Nombre</label>
+              <input class="tl-inline-inp" id="tl-action-${idx}" type="text" value="${item.action.replace(/"/g,'&quot;')}" placeholder="Nombre del bloque">
+            </div>
+          </div>
+          <div>
+            <label class="tl-inline-label">Descripción</label>
+            <input class="tl-inline-inp" id="tl-desc-${idx}" type="text" value="${item.desc.replace(/"/g,'&quot;')}" placeholder="Descripción (opcional)">
+          </div>
+          <div class="tl-inline-actions">
+            <button class="tl-save-btn" onclick="saveInlineEdit('${day}',${idx})">Guardar</button>
+            <button class="tl-cancel-btn" onclick="cancelInlineEdit(${idx})">Cancelar</button>
+          </div>
+        </div>`
+      : '';
+    tl.innerHTML += `<div class="tl-item">
+      <div class="tl-dot ${dotClass}"></div>
+      <div class="tl-content">
+        <div class="tl-time">${item.time}</div>
+        <div class="tl-action" style="color:${color}">${item.action}</div>
+        <div class="tl-desc">${item.desc}</div>
+        ${editBtn}
+        ${inlineForm}
+      </div>
+    </div>`;
   });
 }
 
@@ -1891,23 +2553,52 @@ function initEditorDragDrop() {
   }
 }
 
+/* ══ THEME ══ */
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const newTheme=isDark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',newTheme);
+  localStorage.setItem('nt_theme',newTheme);
+}
+function initTheme(){
+  const saved=localStorage.getItem('nt_theme')||'light';
+  document.documentElement.setAttribute('data-theme',saved);
+}
+
 /* ══ INIT ══ */
 window.addEventListener('DOMContentLoaded',()=>{
+  initTheme();
   updateAll();renderHistory();renderWater();renderMinuta();
+  // Use Chile GMT-4 timezone for correct day detection
+  // dayMap for getDay() → name (0=Sunday JS standard)
   const dayMap=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
-  const todayD=dayMap[new Date().getDay()];
-  const btns=document.querySelectorAll('.day-btn'),todayI=dayMap.indexOf(todayD);
+  const todayD=dayMap[chileWeekDay()];
+  // btns are ordered: lunes=0, martes=1, mié=2, jue=3, vie=4, sáb=5, dom=6
+  const btnOrder=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+  const btns=document.querySelectorAll('.day-btn');
+  const todayI=btnOrder.indexOf(todayD);
   if(btns[todayI])btns[todayI].classList.add('active');
   loadDay(todayD);
   if(pautaPendiente)renderPautaAlert('pautaAlertDash',pautaPendiente);
   updateEvalInfo();initNotifs();generateShopList();
-  // Pre-load editor with today's day
-  const editorDayMap=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
-  editorCurrentDay = editorDayMap[new Date().getDay()];
-  const edBtns = document.querySelectorAll('.editor-day-btn');
-  const edIdx = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'].indexOf(editorCurrentDay);
+  // Pre-load editor with Chile day
+  editorCurrentDay=todayD;
+  const edBtns=document.querySelectorAll('.editor-day-btn');
+  const edIdx=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'].indexOf(todayD);
   if(edBtns[edIdx])edBtns[edIdx].classList.add('active');
-  editorItems = JSON.parse(JSON.stringify(routines[editorCurrentDay]||BASE_ROUTINES[editorCurrentDay]||[]));
+  editorItems=JSON.parse(JSON.stringify(routines[editorCurrentDay]||BASE_ROUTINES[editorCurrentDay]||[]));
+  // Profile avatar
+  if(profileData.avatar){
+    ['profileAvatarImg','topbarAvatarImg'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.src=profileData.avatar;el.style.display='block';}
+    });
+    const icon=document.querySelector('.profile-avatar-icon');if(icon)icon.style.display='none';
+  }
+  const nameEl=document.getElementById('profileName');if(nameEl)nameEl.textContent=profileData.name||'Alex Designer';
+  document.querySelector('.content-area')?.addEventListener('touchstart',()=>{
+    if(document.getElementById('bnDrawer').classList.contains('open'))closeMoreDrawer();
+  },{passive:true});
 });
 </script>
 </body>
