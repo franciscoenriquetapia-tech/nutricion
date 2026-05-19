@@ -292,7 +292,7 @@ input, select { font-family:inherit }
 @keyframes slideUp { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:translateY(0) } }
 .bn-drawer-handle { width: 36px; height: 4px; background: var(--border-mid); border-radius: 2px; margin: 0 auto 12px; }
 .bn-drawer-grid {
-  display: grid; grid-template-columns: repeat(4,1fr);
+  display: grid; grid-template-columns: repeat(3,1fr);
   gap: 4px; padding: 0 12px;
 }
 .bn-drawer-item {
@@ -1736,6 +1736,10 @@ input, select { font-family:inherit }
 <div class="bn-drawer" id="bnDrawer">
   <div class="bn-drawer-handle"></div>
   <div class="bn-drawer-grid">
+    <button class="bn-drawer-item" onclick="showTabDrawer('control',this)" data-tab="control">
+      <span class="di-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
+      <span class="di-label">Control Peso</span>
+    </button>
     <button class="bn-drawer-item" onclick="showTabDrawer('sueno',this)" data-tab="sueno">
       <span class="di-icon"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
       <span class="di-label">Sueño</span>
