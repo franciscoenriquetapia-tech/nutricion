@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NutriTracker Pro</title>
+
+<!-- PWA / iOS Home Screen -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NutriTracker">
+<meta name="theme-color" content="#0ea5a0">
+<meta name="mobile-web-app-capable" content="yes">
+
+<!-- App Icons inline SVG → data URI -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='38' fill='%230f172a'/%3E%3Ccircle cx='90' cy='44' r='12' fill='%237c3aed'/%3E%3Ctext x='90' y='130' font-family='system-ui,sans-serif' font-weight='700' font-size='72' fill='%230ea5a0' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230f172a'/%3E%3Ccircle cx='16' cy='7' r='3' fill='%237c3aed'/%3E%3Ctext x='16' y='25' font-family='system-ui,sans-serif' font-weight='700' font-size='18' fill='%230ea5a0' text-anchor='middle'%3EN%3C/text%3E%3C/svg%3E">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -62,10 +74,36 @@
   --mono: 'JetBrains Mono', monospace;
 
   /* ── Layout */
-  --nav-h:  64px;
+  --nav-h:  60px;
   --top-h:  62px;
   --side-w: 236px;
 }
+
+/* ══ PWA SPLASH ══ */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0f172a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 32px; transition: opacity .6s ease;
+}
+#splash.hidden { opacity: 0; pointer-events: none }
+.splash-icon {
+  width: 96px; height: 96px; border-radius: 24px;
+  background: #0f172a;
+  border: 2px solid rgba(14,165,160,.35);
+  display: flex; align-items: center; justify-content: center; position: relative;
+  box-shadow: 0 24px 64px rgba(14,165,160,.25), 0 0 0 8px rgba(14,165,160,.06);
+}
+.splash-dot-icon { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 13px; height: 13px; border-radius: 50%; background: #7c3aed }
+.splash-n { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 50px; color: #0ea5a0; line-height: 1; margin-top: 10px }
+.splash-wordmark { display: flex; align-items: baseline; gap: 0; font-family: 'Inter', sans-serif; font-weight: 700; font-size: 28px; letter-spacing: -.8px }
+.splash-wordmark .w-teal { color: #0ea5a0 }
+.splash-wordmark .w-dot { width: 9px; height: 9px; border-radius: 50%; background: #7c3aed; margin: 0 0px; display: inline-block; vertical-align: super; font-size: 0; transform: translateY(-6px) }
+.splash-sub { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.28); letter-spacing: 2.5px; text-transform: uppercase }
+.splash-bar-wrap { width: 150px; height: 3px; background: rgba(14,165,160,.15); border-radius: 100px; overflow: hidden }
+.splash-bar-fill { height: 100%; background: linear-gradient(90deg, #0ea5a0, #17c3bd); border-radius: 100px; width: 0%; animation: sLoad 2s cubic-bezier(.4,0,.2,1) forwards }
+@keyframes sLoad { 0%{width:0%} 50%{width:60%} 85%{width:90%} 100%{width:100%} }
+.splash-txt { font-size: 11px; font-weight: 500; color: rgba(255,255,255,.25); letter-spacing: .3px }
 
 /* ══ RESET ══ */
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent }
@@ -83,33 +121,48 @@ input, select { font-family:inherit }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
   box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(15,23,42,.04);
+  gap: 10px;
+}
+/* On iOS PWA the status bar eats into the topbar, so add height */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .topbar {
+    height: calc(var(--top-h) + env(safe-area-inset-top, 0px));
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0px);
+    align-items: flex-end;
+    padding-bottom: 10px;
+  }
 }
 .topbar-logo {
-  display: flex; align-items: center; gap: 10px;
-  font-weight: 700; font-size: 17px; color: var(--text-1); letter-spacing: -.4px;
+  display: flex; align-items: center; gap: 9px;
+  font-weight: 700; font-size: 16px; color: var(--text-1); letter-spacing: -.4px;
+  flex-shrink: 0; min-width: 0;
 }
 .logo-mark {
-  width: 34px; height: 34px; border-radius: 10px;
+  width: 32px; height: 32px; border-radius: 9px;
   background: var(--accent);
   display: flex; align-items: center; justify-content: center;
-  font-size: 16px; flex-shrink: 0;
+  font-size: 15px; flex-shrink: 0;
   box-shadow: 0 2px 8px var(--accent-glow);
 }
-.topbar-right { display: flex; align-items: center; gap: 10px }
-.top-countdown {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--accent-dim); border: 1px solid var(--accent-glow);
-  border-radius: 100px; padding: 5px 14px;
-  font-size: 12px; font-weight: 500; color: var(--accent);
+.topbar-right {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
 }
-.top-countdown strong { font-size: 15px; font-weight: 700 }
+.top-countdown {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--accent-dim); border: 1px solid var(--accent-glow);
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 11px; font-weight: 500; color: var(--accent);
+  white-space: nowrap;
+}
+.top-countdown strong { font-size: 14px; font-weight: 700 }
 .top-phase {
   background: var(--purple-dim); border: 1px solid var(--purple-mid);
-  border-radius: 100px; padding: 5px 13px;
+  border-radius: 100px; padding: 4px 10px;
   font-size: 11px; font-weight: 600; color: var(--purple);
-  letter-spacing: .3px;
+  letter-spacing: .2px; white-space: nowrap;
 }
 
 /* ══════════════════════════════════════════
@@ -169,7 +222,7 @@ input, select { font-family:inherit }
   .content-area {
     flex: 1; overflow-y: auto; overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
-    padding: 16px 14px calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px);
+    padding: 20px 16px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
     max-width: 100%;
   }
   .content-area::-webkit-scrollbar { display: none }
@@ -270,7 +323,12 @@ input, select { font-family:inherit }
   overflow: hidden; cursor: pointer; position: relative; transition: all .2s;
 }
 .profile-avatar:hover { border-color: var(--accent) }
-.profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: none }
+.profile-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  display: none; position: absolute; inset: 0;
+  border-radius: 50%;
+}
 .profile-avatar-icon { color: var(--text-3) }
 .profile-avatar-edit {
   position: absolute; bottom: 0; right: 0;
@@ -332,14 +390,20 @@ input, select { font-family:inherit }
 .profile-signout:hover { background: var(--red-dim); border-color: rgba(220,38,38,.3) }
 /* Profile avatar in topbar */
 .topbar-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   background: var(--accent-dim); border: 2px solid var(--accent-glow);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; transition: all .2s; overflow: hidden; flex-shrink: 0;
+  position: relative;
 }
 .topbar-avatar:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim) }
-.topbar-avatar img { width: 100%; height: 100%; object-fit: cover; display: none }
-.topbar-avatar svg { width: 17px; height: 17px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.topbar-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center;
+  border-radius: 50%;
+  display: none; position: absolute; inset: 0;
+}
+.topbar-avatar svg { width: 16px; height: 16px; stroke: var(--accent); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
 
 /* ══════════════════════════════════════════
    SECTIONS
@@ -758,22 +822,37 @@ input, select { font-family:inherit }
 .phase-upcoming { padding: 0 18px 14px; font-size: 11px; color: var(--text-3) }
 
 /* ══════════════════════════════════════════
-   TOAST + PANIC FLOAT
+   TOAST — bubble style, above bottom nav
 ══════════════════════════════════════════ */
 .toast {
-  position: fixed; bottom: 24px; left: 50%;
-  transform: translateX(-50%) translateY(60px);
-  background: var(--text-1); color: #fff;
-  border-radius: var(--r-sm); padding: 11px 20px;
-  font-size: 13px; font-weight: 500; z-index: 1000;
-  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
-  pointer-events: none; white-space: nowrap;
-  box-shadow: 0 8px 24px rgba(15,23,42,.18), 0 0 0 1px rgba(255,255,255,.08);
+  position: fixed;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px);
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--text-1);
+  color: #fff;
+  border-radius: 100px;
+  padding: 10px 20px;
+  font-size: 13px; font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+  max-width: calc(100vw - 48px);
+  overflow: hidden; text-overflow: ellipsis;
+  box-shadow: 0 8px 24px rgba(15,23,42,.22), 0 0 0 1px rgba(255,255,255,.06);
   letter-spacing: .1px;
 }
-.toast.show { transform: translateX(-50%) translateY(0) }
-@media (max-width: 767px) {
-  .toast { bottom: calc(var(--nav-h) + 10px) }
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+/* Desktop: center of screen, not above nav */
+@media (min-width: 768px) {
+  .toast {
+    bottom: 28px;
+  }
 }
 
 .panic-float {
@@ -932,6 +1011,24 @@ input, select { font-family:inherit }
 </head>
 <body>
 
+<!-- ══ SPLASH SCREEN ══ -->
+<div id="splash">
+  <div class="splash-icon">
+    <div class="splash-dot-icon"></div>
+    <span class="splash-n">N</span>
+  </div>
+  <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div class="splash-wordmark">
+      <span class="w-teal">Nutri</span><span class="w-dot"></span><span class="w-teal">Tracker</span>
+    </div>
+    <div class="splash-sub">Pro</div>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+    <div class="splash-bar-wrap"><div class="splash-bar-fill"></div></div>
+    <div class="splash-txt">Cargando tu plan...</div>
+  </div>
+</div>
+
 <!-- PANIC FLOAT -->
 <div class="panic-float" onclick="logPanic()" title="Registrar impulso de ansiedad">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -941,8 +1038,14 @@ input, select { font-family:inherit }
 <!-- ══ TOPBAR ══ -->
 <header class="topbar">
   <div class="topbar-logo">
-    <div class="logo-mark"><span class="logo-ico"><svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span></div>
-    NutriTracker
+    <div class="logo-mark">
+      <span class="logo-ico">
+        <svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </span>
+    </div>
+    <span style="font-weight:700;letter-spacing:-.4px">
+      <span style="color:var(--accent)">Nutri</span><span style="color:var(--purple);font-size:8px;vertical-align:super;margin:0 1px">●</span><span style="color:var(--accent)">Tracker</span>
+    </span>
   </div>
   <div class="topbar-right">
     <div class="top-phase" id="phaseBadge">Fase 1</div>
@@ -1747,10 +1850,53 @@ function save(){
 function daysSinceStart(){return Math.max(0,Math.ceil((today()-START_DATE)/86400000));}
 function daysLeft(){return Math.max(0,Math.ceil((END_DATE-today())/86400000));}
 function weekNum(){return Math.ceil((daysSinceStart()+1)/7);}
-function activePauta(){if(!pautasAceptadas.length)return FASES[0];const last=pautasAceptadas[pautasAceptadas.length-1];return{...(FASES.find(f=>f.id===last.faseId)||FASES[0]),...last};}
+// Manual phase override: stored as faseId (1,2,3) or null for auto
+let manualFaseId = JSON.parse(localStorage.getItem('nt_manual_fase') || 'null');
+
+function activePauta(){
+  // If manual override set, use that fase with its data
+  if(manualFaseId) {
+    const manualFase = FASES.find(f=>f.id===manualFaseId);
+    if(manualFase) {
+      // Check if we have accepted pauta data for this fase
+      const acp = pautasAceptadas.find(p=>p.faseId===manualFaseId);
+      if(acp) return {...manualFase,...acp};
+      return {...manualFase, faseId: manualFaseId};
+    }
+  }
+  if(!pautasAceptadas.length)return {...FASES[0], faseId:1};
+  const last=pautasAceptadas[pautasAceptadas.length-1];
+  return{...(FASES.find(f=>f.id===last.faseId)||FASES[0]),...last};
+}
+
+function activarFaseManual(faseId) {
+  manualFaseId = faseId;
+  localStorage.setItem('nt_manual_fase', JSON.stringify(faseId));
+  // Add to pautasAceptadas if not there
+  const exists = pautasAceptadas.find(p=>p.faseId===faseId);
+  if(!exists) {
+    const fase = FASES.find(f=>f.id===faseId);
+    if(fase) {
+      pautasAceptadas.push({faseId:fase.id, fechaActivacion:todayStr(), kcal:fase.kcal, prot:fase.prot, carb:fase.carb, grasa:fase.grasa, nombre:fase.nombre, rango:fase.rango});
+      save();
+    }
+  }
+  // Cascade updates
+  updateAll();
+  renderMinuta();
+  generateShopList();
+  renderPautasPage();
+  showToast(`Fase ${faseId} activada — minuta y compras actualizadas`);
+}
 
 /* ══ TOAST ══ */
-function showToast(msg,dur=2600){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function showToast(msg, dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'), dur);
+}
 
 /* ══ TABS ══ */
 /* ══ MORE DRAWER ══ */
@@ -1880,12 +2026,28 @@ function handleAvatarChange(e){
   const reader=new FileReader();
   reader.onload=ev=>{
     profileData.avatar=ev.target.result;saveProfile();
+    // Show avatar in all locations
     ['profileAvatarImg','topbarAvatarImg'].forEach(id=>{
-      const el=document.getElementById(id);if(el){el.src=ev.target.result;el.style.display='block';}
+      const el=document.getElementById(id);
+      if(el){
+        el.src=ev.target.result;
+        el.style.display='block';
+        el.style.width='100%';
+        el.style.height='100%';
+        el.style.objectFit='cover';
+        el.style.objectPosition='center';
+        el.style.position='absolute';
+        el.style.inset='0';
+        el.style.borderRadius='50%';
+      }
     });
+    // Hide default icon
     const icon=document.querySelector('.profile-avatar-icon');if(icon)icon.style.display='none';
+    // Hide topbar SVG
+    const tbSvg=document.querySelector('.topbar-avatar svg');if(tbSvg)tbSvg.style.display='none';
     showToast('Foto de perfil actualizada');
-  };reader.readAsDataURL(file);
+  };
+  reader.readAsDataURL(file);
 }
 
 function openProfileEdit(){
@@ -2201,13 +2363,49 @@ function initNotifs(){Object.entries(notifSettings).forEach(([k,v])=>{if(v)setup
 /* ══ PAUTAS ══ */
 function renderPautasPage(){
   const c=document.getElementById('pautasHistoryList');c.innerHTML='';
-  const cMap={1:'var(--accent)',2:'var(--amber)',3:'var(--red)'},iMap={1:'①',2:'②',3:'③'};
+  const cMap={1:'var(--accent)',2:'var(--amber)',3:'var(--red)'};
+  const activeId = activePauta().faseId || 1;
+
   FASES.forEach(fase=>{
-    const acp=pautasAceptadas.find(p=>p.faseId===fase.id),isCurr=acp&&activePauta().faseId===fase.id;
-    const color=cMap[fase.id],status=acp?(isCurr?'● Activa':'✓ Completada'):'○ Próxima';
-    c.innerHTML+=`<div class="phase-card${isCurr?' active-phase':''}">
-      <div class="phase-card-hdr"><div style="display:flex;align-items:flex-start;gap:10px;flex:1"><span style="font-size:22px">${iMap[fase.id]}</span><div class="phase-info"><div class="phase-status" style="color:${acp?(isCurr?color:'var(--text-3)'):'var(--text-3)'}">${status}</div><div class="phase-name">${fase.nombre}</div><div class="phase-rango">${fase.rango}</div><div style="font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.55">${fase.descripcion}</div></div></div><div style="text-align:right;flex-shrink:0"><div class="phase-kcal-big" style="color:${color}">${acp?acp.kcal:fase.kcal}</div><div class="phase-kcal-lbl">kcal/día<br>−${fase.deficit} kcal</div></div></div>
-      ${acp?`<div class="phase-macros-row"><div class="pm-box"><div class="pm-box-lbl">Proteína</div><div class="pm-box-val" style="color:#ea580c">${acp.prot}g</div></div><div class="pm-box"><div class="pm-box-lbl">Carbos</div><div class="pm-box-val" style="color:var(--blue)">${acp.carb}g</div></div><div class="pm-box"><div class="pm-box-lbl">Grasa</div><div class="pm-box-val" style="color:var(--amber)">${acp.grasa}g</div></div>${acp.fechaActivacion?`<div class="pm-box"><div class="pm-box-lbl">Activada</div><div class="pm-box-val" style="font-size:13px;color:var(--text-2)">${acp.fechaActivacion.split('-').reverse().join('/')}</div></div>`:''}</div><div class="phase-changes">${fase.cambios.map(ch=>`<div class="pci"><span class="pci-arr">→</span>${ch}</div>`).join('')}</div>`:`<div class="phase-upcoming">Se activa en la semana ${fase.semanas[0]} o antes si el ritmo lo requiere.</div>`}
+    const acp=pautasAceptadas.find(p=>p.faseId===fase.id);
+    const isCurr = fase.id === activeId;
+    const color=cMap[fase.id];
+
+    // Status label
+    let statusHtml = '';
+    if(isCurr) statusHtml = `<span style="display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:${color}"><span style="width:7px;height:7px;border-radius:50%;background:${color};display:inline-block"></span>ACTIVA</span>`;
+    else if(acp) statusHtml = `<span style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-3)">○ COMPLETADA</span>`;
+    else statusHtml = `<span style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-3)">○ PRÓXIMA</span>`;
+
+    // Activate button
+    const btnHtml = isCurr
+      ? `<button onclick="activarFaseManual(${fase.id})" style="padding:8px 16px;background:${color};border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;opacity:.6">✓ Activa</button>`
+      : `<button onclick="activarFaseManual(${fase.id})" style="padding:8px 16px;background:transparent;border:1.5px solid ${color};border-radius:8px;color:${color};font-size:12px;font-weight:700;cursor:pointer;transition:all .15s" onmouseover="this.style.background='${color}';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='${color}'">Activar fase ${fase.id}</button>`;
+
+    c.innerHTML+=`<div class="phase-card${isCurr?' active-phase':''}" style="${isCurr?`border-left:3px solid ${color}`:''};${!acp&&!isCurr?'opacity:.75':''}">
+      <div class="phase-card-hdr">
+        <div style="display:flex;align-items:flex-start;gap:10px;flex:1">
+          <div style="width:28px;height:28px;border-radius:50%;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:${color};flex-shrink:0">${fase.id}</div>
+          <div class="phase-info">
+            ${statusHtml}
+            <div class="phase-name" style="${isCurr?`color:${color}`:''}">  ${fase.nombre}</div>
+            <div class="phase-rango">${fase.rango}</div>
+            <div style="font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.55">${fase.descripcion}</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div class="phase-kcal-big" style="color:${color}">${acp?acp.kcal:fase.kcal}</div>
+          <div class="phase-kcal-lbl">kcal/día<br>−${fase.deficit} kcal</div>
+        </div>
+      </div>
+      <div class="phase-macros-row">
+        <div class="pm-box"><div class="pm-box-lbl">Proteína</div><div class="pm-box-val" style="color:#ea580c">${acp?acp.prot:fase.prot}g</div></div>
+        <div class="pm-box"><div class="pm-box-lbl">Carbos</div><div class="pm-box-val" style="color:var(--blue)">${acp?acp.carb:fase.carb}g</div></div>
+        <div class="pm-box"><div class="pm-box-lbl">Grasa</div><div class="pm-box-val" style="color:var(--amber)">${acp?acp.grasa:fase.grasa}g</div></div>
+        ${acp?.fechaActivacion?`<div class="pm-box"><div class="pm-box-lbl">Activada</div><div class="pm-box-val" style="font-size:12px;color:var(--text-2)">${acp.fechaActivacion.split('-').reverse().join('/')}</div></div>`:''}
+      </div>
+      <div class="phase-changes">${fase.cambios.map(ch=>`<div class="pci"><span class="pci-arr">→</span>${ch}</div>`).join('')}</div>
+      <div style="padding:0 18px 16px">${btnHtml}</div>
     </div>`;
   });
 }
@@ -2568,12 +2766,20 @@ function initTheme(){
 /* ══ INIT ══ */
 window.addEventListener('DOMContentLoaded',()=>{
   initTheme();
+
+  // Dismiss splash after 2.2s
+  const splash=document.getElementById('splash');
+  if(splash){
+    setTimeout(()=>{
+      splash.classList.add('hidden');
+      setTimeout(()=>{ splash.style.display='none'; },650);
+    },2200);
+  }
+
   updateAll();renderHistory();renderWater();renderMinuta();
   // Use Chile GMT-4 timezone for correct day detection
-  // dayMap for getDay() → name (0=Sunday JS standard)
   const dayMap=['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
   const todayD=dayMap[chileWeekDay()];
-  // btns are ordered: lunes=0, martes=1, mié=2, jue=3, vie=4, sáb=5, dom=6
   const btnOrder=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
   const btns=document.querySelectorAll('.day-btn');
   const todayI=btnOrder.indexOf(todayD);
@@ -2581,20 +2787,23 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadDay(todayD);
   if(pautaPendiente)renderPautaAlert('pautaAlertDash',pautaPendiente);
   updateEvalInfo();initNotifs();generateShopList();
-  // Pre-load editor with Chile day
+  // Pre-load editor
   editorCurrentDay=todayD;
   const edBtns=document.querySelectorAll('.editor-day-btn');
   const edIdx=['lunes','martes','miercoles','jueves','viernes','sabado','domingo'].indexOf(todayD);
   if(edBtns[edIdx])edBtns[edIdx].classList.add('active');
   editorItems=JSON.parse(JSON.stringify(routines[editorCurrentDay]||BASE_ROUTINES[editorCurrentDay]||[]));
-  // Profile avatar
-  if(profileData.avatar){
+  // Profile avatar restore
+  function applyAvatar(src){
     ['profileAvatarImg','topbarAvatarImg'].forEach(id=>{
       const el=document.getElementById(id);
-      if(el){el.src=profileData.avatar;el.style.display='block';}
+      if(!el)return;
+      el.src=src; el.style.cssText='display:block;width:100%;height:100%;object-fit:cover;object-position:center;position:absolute;inset:0;border-radius:50%';
     });
     const icon=document.querySelector('.profile-avatar-icon');if(icon)icon.style.display='none';
+    const tbSvg=document.querySelector('.topbar-avatar svg');if(tbSvg)tbSvg.style.display='none';
   }
+  if(profileData.avatar) applyAvatar(profileData.avatar);
   const nameEl=document.getElementById('profileName');if(nameEl)nameEl.textContent=profileData.name||'Alex Designer';
   document.querySelector('.content-area')?.addEventListener('touchstart',()=>{
     if(document.getElementById('bnDrawer').classList.contains('open'))closeMoreDrawer();
