@@ -339,6 +339,7 @@ input, select { font-family:inherit }
 ══════════════════════════════════════════ */
 .profile-avatar-wrap {
   display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px;
+  text-align: center;
 }
 .profile-avatar {
   width: 84px; height: 84px; border-radius: 50%;
@@ -362,7 +363,7 @@ input, select { font-family:inherit }
 }
 .profile-avatar-edit svg { width: 12px; height: 12px; stroke: #fff; fill: none; stroke-width: 2.5 }
 .profile-name { font-size: 20px; font-weight: 700; letter-spacing: -.4px; color: var(--text-1) }
-.profile-plan { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-glow); border-radius: 100px; padding: 3px 10px; margin-top: 2px }
+.profile-plan { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-glow); border-radius: 100px; padding: 3px 16px; margin-top: 4px; display: inline-block; text-align: center; }
 .profile-edit-btn {
   width: 100%; padding: 11px; background: var(--layer); border: 1.5px solid var(--border-mid);
   border-radius: var(--r-sm); font-size: 13px; font-weight: 600; color: var(--text-2);
@@ -766,11 +767,20 @@ input, select { font-family:inherit }
 /* ══════════════════════════════════════════
    SUEÑO
 ══════════════════════════════════════════ */
-.sleep-form { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 12px }
-.sleep-grp  { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 13px }
-.sleep-lbl  { font-size: 10px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--text-3); margin-bottom: 7px; display: block }
-.sleep-inp  { width: 100%; background: var(--layer); border: 1.5px solid var(--border-mid); border-radius: var(--r-sm); padding: 9px 11px; color: var(--text-1); font-family: var(--mono); font-size: 14px; outline: none; transition: all .2s }
-.sleep-inp:focus { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-dim) }
+.sleep-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px }
+.sleep-grp  { background: var(--surface); border: 1.5px solid var(--border-mid); border-radius: var(--r); padding: 14px 12px }
+.sleep-lbl  { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); margin-bottom: 10px; display: block }
+.sleep-inp  {
+  width: 100%; background: transparent; border: none;
+  color: var(--text-1); font-family: var(--mono); font-size: 22px; font-weight: 600;
+  outline: none; text-align: center; letter-spacing: 1px;
+  -webkit-appearance: none; appearance: none;
+}
+.sleep-inp:focus { color: var(--accent) }
+/* Style the time input's inner parts on webkit */
+.sleep-inp::-webkit-datetime-edit { padding: 0 }
+.sleep-inp::-webkit-datetime-edit-fields-wrapper { padding: 0 }
+.sleep-inp::-webkit-calendar-picker-indicator { opacity: .4; cursor: pointer; width: 18px; height: 18px; display: block; margin: 4px auto 0 }
 .quality-btns { display: flex; gap: 7px }
 .q-btn { flex: 1; padding: 9px 6px; border-radius: var(--r-sm); font-size: 11px; font-weight: 600; border: 1px solid var(--border-mid); background: transparent; color: var(--text-2); cursor: pointer; text-align: center; transition: all .15s }
 .q-btn.sel-bad   { background: var(--red-dim);    border-color: rgba(220,38,38,.3);   color: var(--red) }
@@ -1061,7 +1071,7 @@ input, select { font-family:inherit }
 
 <!-- ══ TOPBAR ══ -->
 <header class="topbar">
-  <div class="topbar-logo">
+  <div class="topbar-logo" onclick="showTab('dashboard',null);document.querySelectorAll('.bn-item').forEach(b=>b.classList.remove('active'));var d=document.getElementById('bn-dashboard');if(d)d.classList.add('active');" style="cursor:pointer">
     <div class="logo-mark">
       <span class="logo-ico">
         <svg viewBox="0 0 24 24"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
